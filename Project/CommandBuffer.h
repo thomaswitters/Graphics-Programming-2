@@ -12,8 +12,6 @@ public:
 	void beginRecording(VkCommandBufferUsageFlags flags = 0U) const;
 	void endRecording() const;
 
-	//void drawFrame(uint32_t imageIndex);
-
 	void submit(VkSubmitInfo& info)const;
 
 	void setVkCommandBuffer(VkCommandBuffer buffer);

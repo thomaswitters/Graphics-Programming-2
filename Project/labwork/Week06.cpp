@@ -47,10 +47,11 @@ void VulkanBase::drawFrame() {
 	m_commandBuffer.reset();
 	m_commandBuffer.beginRecording();
 
-	beginRenderPass(m_graphicsPipeline, m_swapChain.getSwapChainExtent(), imageIndex);
+	beginRenderPass(m_swapChain.getSwapChainExtent(), imageIndex);
 
-	//vkCmdDraw(m_commandBuffer.getVkCommandBuffer(), 6, 1, 0, 0);
-	myScene.draw(m_commandBuffer, imageIndex);
+	myScene2D.draw2D(m_camera, m_commandBuffer, m_graphicsPipeline2D, m_swapChain, imageIndex);
+	myScene3D.draw3D(m_camera, m_commandBuffer, m_graphicsPipeline3D, m_swapChain, imageIndex);
+	myScene3D_PBR.draw3D_PBR(m_camera, m_commandBuffer, m_graphicsPipeline3D_PBR, m_swapChain, imageIndex);
 
 	vkCmdEndRenderPass(m_commandBuffer.getVkCommandBuffer());
 	m_commandBuffer.endRecording();
@@ -186,36 +187,4 @@ void VulkanBase::createInstance() {
 	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create instance!");
 	}
-}
-
-void VulkanBase::beginRenderPass(GraphicsPipeline graphicsPipeline, const VkExtent2D& swapChainExtent, uint32_t imageIndex)
-{
-	VkRenderPassBeginInfo renderPassInfo{};
-   renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-   renderPassInfo.renderPass = graphicsPipeline.getRenderPass();
-   renderPassInfo.framebuffer = graphicsPipeline.getSwapChainFramebuffers()[imageIndex];
-   renderPassInfo.renderArea.offset = { 0, 0 };
-   renderPassInfo.renderArea.extent = swapChainExtent;
-
-   VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
-   renderPassInfo.clearValueCount = 1;
-   renderPassInfo.pClearValues = &clearColor;
-
-   vkCmdBeginRenderPass(m_commandBuffer.getVkCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-   VkViewport viewport{};
-   viewport.x = 0.0f;
-   viewport.y = 0.0f;
-   viewport.width = (float)swapChainExtent.width;
-   viewport.height = (float)swapChainExtent.height;
-   viewport.minDepth = 0.0f;
-   viewport.maxDepth = 1.0f;
-   vkCmdSetViewport(m_commandBuffer.getVkCommandBuffer(), 0, 1, &viewport);
-
-   VkRect2D scissor{};
-   scissor.offset = { 0, 0 };
-   scissor.extent = swapChainExtent;
-   vkCmdSetScissor(m_commandBuffer.getVkCommandBuffer(), 0, 1, &scissor);
-
-   vkCmdBindPipeline(m_commandBuffer.getVkCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline.getGraphicsPipeline());
 }

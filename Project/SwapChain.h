@@ -18,11 +18,15 @@ public:
     VkSwapchainKHR getSwapChain() const { return m_SwapChain; }
     const std::vector<VkImage>& getSwapChainImages() const { return m_SwapChainImages; }
     const std::vector<VkImageView>& getSwapChainImageViews() const { return m_SwapChainImageViews; }
+    VkImageView getDepthImageView() const { return m_DepthImageView; }
     VkFormat getSwapChainImageFormat() const { return m_SwapChainImageFormat; }
     VkExtent2D getSwapChainExtent() const { return m_SwapChainExtent; }
+    size_t getImageCount() const { return m_SwapChainImages.size(); }
+
 private:
     void createSwapChain(const VkDevice& device, const VkSurfaceKHR& surface, GLFWwindow* window, const VulkanDeviceManager& deviceManager);
     void createImageViews(const VkDevice& device);
+    void createDepthResources(const VkDevice& device, const VulkanDeviceManager& deviceManager);
 
     SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, const VkSurfaceKHR& surface);
     VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -32,6 +36,10 @@ private:
     VkSwapchainKHR m_SwapChain;
     std::vector<VkImage> m_SwapChainImages;
     std::vector<VkImageView> m_SwapChainImageViews;
+    VkImageView m_DepthImageView;
     VkFormat m_SwapChainImageFormat;
     VkExtent2D m_SwapChainExtent;
+
+    VkImage m_DepthImage;
+    VkDeviceMemory m_DepthImageMemory;
 };

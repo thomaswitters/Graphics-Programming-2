@@ -30,6 +30,7 @@ void CommandBuffer::beginRecording(VkCommandBufferUsageFlags flags) const
     }
 }
 
+
 void CommandBuffer::endRecording() const
 {
     if (m_CommandBuffer == VK_NULL_HANDLE)

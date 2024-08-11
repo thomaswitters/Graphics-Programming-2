@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include "vulkan/vulkan.h"
+#include <functional>
 
 struct Vertex2D {
     glm::vec2 pos;
@@ -37,7 +38,7 @@ struct Vertex2D {
 
 
 struct Vertex3D {
-    glm::vec2 pos;
+    glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
 
@@ -54,48 +55,52 @@ struct Vertex3D {
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT; // format for glm::vec2
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].offset = offsetof(Vertex3D, pos);
 
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT; // format for glm::vec3
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].offset = offsetof(Vertex3D, color);
 
         attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT; // format for glm::vec2
+        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[2].offset = offsetof(Vertex3D, texCoord);
 
         return attributeDescriptions;
     }
-
-    static VkPipelineVertexInputStateCreateInfo CreateVertexInputStateInfo() {
-        VkVertexInputBindingDescription bindingDescription = Vertex3D::getBindingDescription();
-        auto attributeDescriptions = Vertex3D::getAttributeDescriptions();
-
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-        return vertexInputInfo;
-    }
 };
 
-struct EnhancedVertex {
+struct Vertex3D_PBR {
     glm::vec3 pos;
-    glm::vec3 normal;
     glm::vec3 color;
     glm::vec2 texCoord;
+    glm::vec3 normal;
     glm::vec3 tangent;
+
+    bool operator==(const Vertex3D_PBR& other) const {
+        return pos == other.pos &&
+            color == other.color &&
+            texCoord == other.texCoord &&
+            normal == other.normal &&
+            tangent == other.tangent;
+    }
+
+    struct Hash {
+        size_t operator()(const Vertex3D_PBR& vertex) const {
+            size_t h1 = std::hash<float>()(vertex.pos.x) ^ std::hash<float>()(vertex.pos.y) ^ std::hash<float>()(vertex.pos.z);
+            size_t h2 = std::hash<float>()(vertex.texCoord.x) ^ std::hash<float>()(vertex.texCoord.y);
+            size_t h3 = std::hash<float>()(vertex.normal.x) ^ std::hash<float>()(vertex.normal.y) ^ std::hash<float>()(vertex.normal.z);
+            size_t h4 = std::hash<float>()(vertex.tangent.x) ^ std::hash<float>()(vertex.tangent.y) ^ std::hash<float>()(vertex.tangent.z);
+            return h1 ^ h2 ^ h3 ^ h4;
+        }
+    };
 
     static VkVertexInputBindingDescription getBindingDescription() {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(EnhancedVertex);
+        bindingDescription.stride = sizeof(Vertex3D_PBR);
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
         return bindingDescription;
     }
@@ -105,43 +110,29 @@ struct EnhancedVertex {
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT; // format for glm::vec3
-        attributeDescriptions[0].offset = offsetof(EnhancedVertex, pos);
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(Vertex3D_PBR, pos);
 
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT; // format for glm::vec3
-        attributeDescriptions[1].offset = offsetof(EnhancedVertex, normal);
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Vertex3D_PBR, color);
 
         attributeDescriptions[2].binding = 0;
         attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32B32_SFLOAT; // format for glm::vec3
-        attributeDescriptions[2].offset = offsetof(EnhancedVertex, color);
+        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].offset = offsetof(Vertex3D_PBR, texCoord);
 
         attributeDescriptions[3].binding = 0;
         attributeDescriptions[3].location = 3;
-        attributeDescriptions[3].format = VK_FORMAT_R32G32_SFLOAT; // format for glm::vec2
-        attributeDescriptions[3].offset = offsetof(EnhancedVertex, texCoord);
+        attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[3].offset = offsetof(Vertex3D_PBR, normal);
 
         attributeDescriptions[4].binding = 0;
         attributeDescriptions[4].location = 4;
-        attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT; // format for glm::vec3
-        attributeDescriptions[4].offset = offsetof(EnhancedVertex, tangent);
+        attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[4].offset = offsetof(Vertex3D_PBR, tangent);
 
         return attributeDescriptions;
-    }
-
-    static VkPipelineVertexInputStateCreateInfo CreateVertexInputStateInfo() {
-        VkVertexInputBindingDescription bindingDescription = EnhancedVertex::getBindingDescription();
-        auto attributeDescriptions = EnhancedVertex::getAttributeDescriptions();
-
-        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-        return vertexInputInfo;
     }
 };

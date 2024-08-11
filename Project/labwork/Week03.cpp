@@ -1,58 +1,101 @@
 #include "vulkanbase/VulkanBase.h"
 
-//void VulkanBase::createFrameBuffers() {
-//	swapChainFramebuffers.resize(m_swapChain.getSwapChainImageViews().size());
-//	for (size_t i = 0; i < m_swapChain.getSwapChainImageViews().size(); i++) {
-//		VkImageView attachments[] = {
-//			m_swapChain.getSwapChainImageViews()[i]
-//		};
-//
-//		VkFramebufferCreateInfo framebufferInfo{};
-//		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-//		framebufferInfo.renderPass = renderPass;
-//		framebufferInfo.attachmentCount = 1;
-//		framebufferInfo.pAttachments = attachments;
-//		framebufferInfo.width = m_swapChain.getSwapChainExtent().width;
-//		framebufferInfo.height = m_swapChain.getSwapChainExtent().height;
-//		framebufferInfo.layers = 1;
-//
-//		if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
-//			throw std::runtime_error("failed to create framebuffer!");
-//		}
-//	}
-//}
-//
-//void VulkanBase::createRenderPass() {
-//	VkAttachmentDescription colorAttachment{};
-//	colorAttachment.format = m_swapChain.getSwapChainImageFormat();
-//	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-//	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-//	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-//	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-//	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-//	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-//	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-//
-//	VkAttachmentReference colorAttachmentRef{};
-//	colorAttachmentRef.attachment = 0;
-//	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-//
-//	VkSubpassDescription subpass{};
-//	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-//	subpass.colorAttachmentCount = 1;
-//	subpass.pColorAttachments = &colorAttachmentRef;
-//
-//	VkRenderPassCreateInfo renderPassInfo{};
-//	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-//	renderPassInfo.attachmentCount = 1;
-//	renderPassInfo.pAttachments = &colorAttachment;
-//	renderPassInfo.subpassCount = 1;
-//	renderPassInfo.pSubpasses = &subpass;
-//
-//	if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-//		throw std::runtime_error("failed to create render pass!");
-//	}
-//}
+void VulkanBase::createFrameBuffers() {
+    m_swapChainFramebuffers.resize(m_swapChain.getSwapChainImageViews().size());
+    for (size_t i = 0; i < m_swapChain.getSwapChainImageViews().size(); i++) {
+        // Create an array of attachments for the framebuffer
+        VkImageView attachments[] = {
+            m_swapChain.getSwapChainImageViews()[i], // Color attachment
+            m_swapChain.getDepthImageView()           // Depth attachment (add this line)
+        };
+
+        // Create framebuffer information
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = m_renderPass;
+        framebufferInfo.attachmentCount = 2; // Update this to 2 for color and depth attachments
+        framebufferInfo.pAttachments = attachments; // Point to the attachments array
+        framebufferInfo.width = m_swapChain.getSwapChainExtent().width;
+        framebufferInfo.height = m_swapChain.getSwapChainExtent().height;
+        framebufferInfo.layers = 1;
+
+        // Create the framebuffer
+        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_swapChainFramebuffers[i]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create framebuffer!");
+        }
+    }
+}
+
+void VulkanBase::createRenderPass() {
+    VkAttachmentDescription colorAttachment{};
+    colorAttachment.format = m_swapChain.getSwapChainImageFormat();
+    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+    // Depth attachment description
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = FindDepthFormat(m_DeviceManager.getPhysicalDevice());
+    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    // Create attachment references
+    VkAttachmentReference colorAttachmentRef{};
+    colorAttachmentRef.attachment = 0;
+    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef{};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    // Subpass description
+    VkSubpassDescription subpass{};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentRef;
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+    // Render pass creation info
+    VkRenderPassCreateInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassInfo.attachmentCount = 2;
+    VkAttachmentDescription attachments[] = { colorAttachment, depthAttachment };
+    renderPassInfo.pAttachments = attachments;
+    renderPassInfo.subpassCount = 1;
+    renderPassInfo.pSubpasses = &subpass;
+
+    if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create render pass!");
+    }
+}
+
+void VulkanBase::beginRenderPass(const VkExtent2D& swapChainExtent, uint32_t imageIndex)
+{
+	VkRenderPassBeginInfo renderPassInfo{};
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderPassInfo.renderPass = m_renderPass;
+	renderPassInfo.framebuffer = m_swapChainFramebuffers[imageIndex];
+	renderPassInfo.renderArea.offset = { 0, 0 };
+	renderPassInfo.renderArea.extent = swapChainExtent;
+
+	VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+	VkClearValue clearDepth = { {1.0f, 0} };
+	renderPassInfo.clearValueCount = 2;
+	VkClearValue clearValues[] = { clearColor, clearDepth };
+	renderPassInfo.pClearValues = clearValues;
+
+
+	vkCmdBeginRenderPass(m_commandBuffer.getVkCommandBuffer(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+}
 //
 //void VulkanBase::createGraphicsPipeline() {
 //	VkPipelineViewportStateCreateInfo viewportState{};

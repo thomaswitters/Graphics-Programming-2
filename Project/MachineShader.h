@@ -28,7 +28,7 @@ public:
 		return m_ShaderStages;
 	}
 
-	void DestroyShaderModules(const VkDevice& vkDevice)
+	void destroyShaderModules(const VkDevice& vkDevice)
 	{
 		for (auto& stageInfo : m_ShaderStages)
 		{
@@ -46,7 +46,7 @@ public:
 		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 		fragShaderStageInfo.module = fragShaderModule;
-		fragShaderStageInfo.pName = m_FSEntryPoint.c_str();// Hardcoded
+		fragShaderStageInfo.pName = m_FSEntryPoint.c_str();
 
 		return fragShaderStageInfo;
 	}

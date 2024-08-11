@@ -1,11 +1,8 @@
 #include "VulkanBufferHandler.h"
-#include <iostream>
-#include <cstring>
-
 
 DataBuffer::DataBuffer(
-    VkPhysicalDevice physicalDevice,
-    VkDevice device,
+    const VkPhysicalDevice& physicalDevice,
+    const VkDevice& device,
     VkBufferUsageFlags usage,
     VkMemoryPropertyFlags properties,
     VkDeviceSize size
@@ -15,14 +12,21 @@ DataBuffer::DataBuffer(
 }
 
 void DataBuffer::upload(VkDeviceSize size, void* data) {
-    void* mappedData;
-    vkMapMemory(m_Device, m_BufferMemory, 0, size, 0, &mappedData);
-    memcpy(mappedData, data, (size_t)size);
-    vkUnmapMemory(m_Device, m_BufferMemory);
+    if (m_BufferDataPtr == nullptr)
+    {
+        void* tempBufferDataPtr = nullptr;
+        vkMapMemory(m_Device, m_BufferMemory, 0, size, 0, &tempBufferDataPtr);
+        memcpy(tempBufferDataPtr, data, (size_t)size);
+        vkUnmapMemory(m_Device, m_BufferMemory);
+    }
+    else
+    {
+        memcpy(m_BufferDataPtr, data, (size_t)size);
+    }
 }
 
-void DataBuffer::map(VkDeviceSize size, void* data) {
-    vkMapMemory(m_Device, m_BufferMemory, 0, size, 0, &data);
+void DataBuffer::map(VkDeviceSize size) {
+    vkMapMemory(m_Device, m_BufferMemory, 0, size, 0, &m_BufferDataPtr);
 }
 
 void DataBuffer::destroy(VkDevice device) {
@@ -30,37 +34,20 @@ void DataBuffer::destroy(VkDevice device) {
     vkFreeMemory(device, m_BufferMemory, nullptr);
 }
 
-void DataBuffer::bindAsVertexBuffer(CommandBuffer commandBuffer) {
-    VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer.getVkCommandBuffer(), 0, 1, &m_Buffer, offsets);
-}
-
-void DataBuffer::bindAsIndexBuffer(CommandBuffer commandBuffer) {
-    vkCmdBindIndexBuffer(commandBuffer.getVkCommandBuffer(), m_Buffer, 0, VK_INDEX_TYPE_UINT32);
-}
-
 VkBuffer DataBuffer::getVkBuffer() const {
     return m_Buffer;
 }
+
+VkDeviceMemory DataBuffer::getVkDeviceMemory() const {
+    return m_BufferMemory;
+}
+
 
 VkDeviceSize DataBuffer::getSizeInBytes() const {
     return m_Size;
 }
 
-uint32_t DataBuffer::findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) const {
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    throw std::runtime_error("failed to find suitable memory type!");
-}
-
-void DataBuffer::createBuffer(VkPhysicalDevice physicalDevice, VkDevice device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+void DataBuffer::createBuffer(const VkPhysicalDevice& physicalDevice, const VkDevice& device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = size;

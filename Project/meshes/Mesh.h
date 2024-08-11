@@ -6,11 +6,11 @@
 #include "DescriptorPool.h"
 #include "VulkanBufferHandler.h"
 #include "CommandBuffer.h"
+#include "texture/Material.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-
 
 template <typename VertexType>
 class Mesh {
@@ -18,11 +18,14 @@ public:
     Mesh() = default;
 
     void initialize(const VkDevice& device, const VkPhysicalDevice& physDevice, QueueFamilyIndices queueFamily, VkQueue graphicsQueue, const std::vector<VertexType> vertices, std::vector<uint32_t> indices);
-    void draw(CommandBuffer commandBuffer) const;
+    void draw(CommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const;
     void cleanUp(const VkDevice& device);
 
     const std::vector<VertexType>& getVertices() const { return m_Vertices; }
     const std::vector<uint32_t>& getIndices() const { return m_Indices; }
+
+    void setVertices(const std::vector<VertexType>& vertices) { m_Vertices = vertices; }
+    void setIndices(const std::vector<uint32_t>& indices) { m_Indices = indices; }
 
     const DescriptorPool& getDescriptorPool() const { return m_DescriptorPool; }
 
@@ -31,13 +34,15 @@ public:
 
     static Mesh<Vertex2D> CreateEllipse(glm::vec2 center, float width, float height, const glm::vec3& color, int nrOfVertexes);
     static Mesh<Vertex2D> CreateEllipse(glm::vec2 center, float width, float height, const glm::vec3& innerColor, const glm::vec3& outerColor, int nrOfVertexes);
+
+    glm::mat4 m_ModelMatrix = glm::mat4(1.0f);
+    std::shared_ptr<Material> m_Material;
 private:
     std::unique_ptr<DataBuffer> m_VertexBuffer;
     std::unique_ptr<DataBuffer> m_IndexBuffer;
+
     std::vector<VertexType> m_Vertices;
     std::vector<uint32_t> m_Indices;
-
-    //DescriptorPool m_DescriptorPool;
 };
 
 
@@ -96,7 +101,7 @@ void Mesh<VertexType>::initialize(const VkDevice& device, const VkPhysicalDevice
 }
 
 template <typename VertexType>
-void Mesh<VertexType>::draw(CommandBuffer commandBuffer) const {
+void Mesh<VertexType>::draw(CommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const {
     VkBuffer vertexBuffers[] = { m_VertexBuffer->getVkBuffer() };
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer.getVkCommandBuffer(), 0, 1, vertexBuffers, offsets);
@@ -105,8 +110,7 @@ void Mesh<VertexType>::draw(CommandBuffer commandBuffer) const {
 }
 
 template <typename VertexType>
-void Mesh<VertexType>::cleanUp(const VkDevice& device)
-{
+void Mesh<VertexType>::cleanUp(const VkDevice& device) {
     m_VertexBuffer->destroy(device);
     m_IndexBuffer->destroy(device);
 }

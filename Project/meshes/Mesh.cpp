@@ -6,7 +6,6 @@ Mesh<Vertex2D> Mesh<Vertex2D>::CreateRectangle(glm::vec2 center, float width, fl
     std::vector<Vertex2D> vertexes{};
     std::vector<uint32_t> indices{ 0, 1, 2, 2, 3, 0 };
 
-    // Define the four corners of the rectangle
     vertexes.push_back(Vertex2D{ {center.x - width / 2, center.y - height / 2}, color });
     vertexes.push_back(Vertex2D{ {center.x + width / 2, center.y - height / 2}, color });
     vertexes.push_back(Vertex2D{ {center.x + width / 2, center.y + height / 2}, color });
@@ -43,13 +42,10 @@ Mesh<Vertex2D> Mesh<Vertex2D>::CreateEllipse(glm::vec2 center, float width, floa
     std::vector<Vertex2D> vertexes{};
     std::vector<uint32_t> indices{};
 
-    // Add center vertex
     vertexes.push_back({ center, color });
 
-    // Calculate angle increment
     float angleIncrement = 2.0f * float(M_PI) / nrOfVertexes;
 
-    // Generate points around the ellipse
     for (int i = 0; i < nrOfVertexes; ++i)
     {
         float angle = i * angleIncrement;
@@ -58,12 +54,11 @@ Mesh<Vertex2D> Mesh<Vertex2D>::CreateEllipse(glm::vec2 center, float width, floa
         vertexes.push_back({ glm::vec2(x, y), color });
     }
 
-    // Create indices for the triangle fan
     for (int i = 1; i <= nrOfVertexes; ++i)
     {
-        indices.push_back(0); // Center vertex
-        indices.push_back(i); // Current vertex
-        indices.push_back((i % nrOfVertexes) + 1); // Next vertex (wrap around)
+        indices.push_back(0);
+        indices.push_back(i);
+        indices.push_back((i % nrOfVertexes) + 1);
     }
 
     ellipseMesh.m_Vertices = vertexes;
@@ -78,13 +73,10 @@ Mesh<Vertex2D> Mesh<Vertex2D>::CreateEllipse(glm::vec2 center, float width, floa
     std::vector<Vertex2D> vertexes{};
     std::vector<uint32_t> indices{};
 
-    // Add center vertex with inner color
     vertexes.push_back({ center, innerColor });
 
-    // Calculate angle increment
     float angleIncrement = 2.0f * float(M_PI) / nrOfVertexes;
 
-    // Generate points around the ellipse with outer color
     for (int i = 0; i < nrOfVertexes; ++i)
     {
         float angle = i * angleIncrement;
@@ -93,12 +85,11 @@ Mesh<Vertex2D> Mesh<Vertex2D>::CreateEllipse(glm::vec2 center, float width, floa
         vertexes.push_back({ glm::vec2(x, y), outerColor });
     }
 
-    // Create indices for the triangle fan
     for (int i = 1; i <= nrOfVertexes; ++i)
     {
-        indices.push_back(0); // Center vertex
-        indices.push_back(i); // Current outer vertex
-        indices.push_back((i % nrOfVertexes) + 1); // Next outer vertex (wrap around)
+        indices.push_back(0);
+        indices.push_back(i);
+        indices.push_back((i % nrOfVertexes) + 1);
     }
 
     ellipseMesh.m_Vertices = vertexes;

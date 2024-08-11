@@ -31,7 +31,7 @@ CommandBuffer CommandPool::createCommandBuffer(const VkDevice& device) const
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
 
-	CommandBuffer cmdBuffer;
+	CommandBuffer cmdBuffer{};
 	cmdBuffer.setVkCommandBuffer(commandBuffer);
 
 	return cmdBuffer;

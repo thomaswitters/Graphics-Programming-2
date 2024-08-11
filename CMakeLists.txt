@@ -17,6 +17,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
+
 # Find the required packages
 find_package(Vulkan REQUIRED)
 

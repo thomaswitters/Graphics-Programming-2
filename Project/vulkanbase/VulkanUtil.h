@@ -6,8 +6,8 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 
-const uint32_t WIDTH = 800;
-const uint32_t HEIGHT = 600;
+const uint32_t WIDTH = 1200;
+const uint32_t HEIGHT = 1000;
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -19,6 +19,7 @@ const bool enableValidationLayers = true;
 #include <fstream>
 #include <optional>
 #include <set>
+#include <glm/ext/matrix_float4x4.hpp>
 
 const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -42,6 +43,10 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 
 std::vector<char> readFile(const std::string& filename);
 
+void CreateImage(const VkDevice& device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+	VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+	VkDeviceMemory& imageMemory);
+
 VkImageView CreateImageView(const VkDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 struct QueueFamilyIndices {
@@ -53,13 +58,27 @@ struct QueueFamilyIndices {
 	}
 };
 
-//void EndSingleTimeCommands(const VkDevice& device, VkCommandBuffer commandBuffer, const CommandPool& commandPool, const VkQueue& queue);
-//
-//void TransitionImageLayout(const VkDevice& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, const CommandPool& commandPool, const VkQueue& queue);
+
+struct UniformBufferObject2D
+{
+	glm::mat4 proj;
+};
+struct UniformBufferObject3D
+{
+	glm::mat4 viewProjection;
+	glm::vec4 viewPosition;
+};
+
+struct MeshPushConstants
+{
+	glm::mat4 model;
+};
 
 
+uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-
+VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice);
+VkFormat FindSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
 bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, const VkSurfaceKHR& surface);

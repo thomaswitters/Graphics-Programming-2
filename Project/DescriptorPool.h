@@ -1,27 +1,30 @@
 #pragma once
 #include "vulkan/vulkan_core.h"
 #include <initializer_list>
-#include <vector>
 #include <stdexcept>
+#include <vector>
+#include <memory>
+#include <VulkanBufferHandler.h>
 
 class DescriptorPool
 {
 public:
-    DescriptorPool() = default;
+    DescriptorPool(const VkDevice& device, size_t frameCount, const std::vector<VkDescriptorType>& types, VkDescriptorSetLayout descriptorSetLayout, const std::vector<std::unique_ptr<DataBuffer>>& buffers);
 
-    DescriptorPool(VkDevice device, VkDeviceSize size, size_t count);
-    ~DescriptorPool();
-    void createDescriptorSets(VkDescriptorSetLayout descriptorSetLayout,
-        std::initializer_list<VkBuffer> buffers);
+    void cleanup(const VkDevice& device);
 
-    void bindDescriptorSet(VkCommandBuffer buffer, VkPipelineLayout layout, size_t index);
+    VkDescriptorSet* getDescriptorSet(int index) { return &m_DescriptorSets[index]; }
 
-    const std::vector<VkDescriptorSet>& getDescriptorSets() const { return m_DescriptorSets; }
+    operator VkDescriptorPool() const { return m_DescriptorPool; }
+
+
 private:
-    VkDevice m_Device;
-    VkDeviceSize m_Size;
-    VkDescriptorPool m_DescriptorPool;
-    std::vector<VkDescriptorSet> m_DescriptorSets;
-    size_t m_Count;
+    void createPool(size_t frameCount, const std::vector<VkDescriptorType>& types);
+    void createSets(size_t frameCount, const std::vector<VkDescriptorType>& types,
+        VkDescriptorSetLayout descriptorSetLayout, const std::vector<std::unique_ptr<DataBuffer>>& buffers);
+
+    VkDevice m_Device{};
+    VkDescriptorPool m_DescriptorPool{};
+    std::vector<VkDescriptorSet> m_DescriptorSets{};
 };
 

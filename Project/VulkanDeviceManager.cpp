@@ -49,19 +49,20 @@ void VulkanDeviceManager::createLogicalDevice(VkDevice& device, const VkSurfaceK
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkDeviceQueueCreateInfo queueCreateInfo{};
-    queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
-    queueCreateInfo.queueCount = 1;
-
     VkPhysicalDeviceFeatures deviceFeatures{};
+    vkGetPhysicalDeviceFeatures(m_PhysicalDevice, &deviceFeatures);
+
+    if (deviceFeatures.samplerAnisotropy) {
+        deviceFeatures.samplerAnisotropy = VK_TRUE;
+    }
+    else {
+        deviceFeatures.samplerAnisotropy = VK_FALSE;
+    }
 
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
     createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
     createInfo.pEnabledFeatures = &deviceFeatures;
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());

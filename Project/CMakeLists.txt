@@ -30,17 +30,49 @@ set(SOURCES
     "vulkanbase/VulkanUtil.h"
     "vulkanbase/VulkanUtil.cpp"
     # Add other source files here
+    "stb/stb_image.h"
     "labwork/Week01.cpp"
     "labwork/Week02.cpp" 
     "labwork/Week03.cpp" 
     "labwork/Week04.cpp" 
     "labwork/Week05.cpp"
     "labwork/Week06.cpp"
- "MachineShader.h" "MachineShader.cpp"    "CommandBuffer.h" "CommandBuffer.cpp"       "loadObjFile.h" "VulkanBufferHandler.h" "VulkanBufferHandler.cpp" "CommandPool.h" "CommandPool.cpp"   "BaseBuffer.h" "BaseBuffer.cpp" "Vertex.h"           "GraphicsPipeline.h" "GraphicsPipeline.cpp" "DescriptorPool.h" "DescriptorPool.cpp" "VulkanDeviceManager.h" "VulkanDeviceManager.cpp" "SwapChain.h" "SwapChain.cpp" "meshes/Mesh.h" "meshes/Mesh.cpp" "Scene.h" "Scene.cpp")
+    "MachineShader.h" 
+    "MachineShader.cpp"    
+    "CommandBuffer.h" 
+    "CommandBuffer.cpp"       
+    "loadObjFile.h" 
+    "VulkanBufferHandler.h" 
+    "VulkanBufferHandler.cpp" 
+    "CommandPool.h" 
+    "CommandPool.cpp"     
+    "Vertex.h"           
+    "GraphicsPipeline.h" 
+    "GraphicsPipeline.cpp" 
+    "DescriptorPool.h" 
+    "DescriptorPool.cpp" 
+    "VulkanDeviceManager.h" 
+    "VulkanDeviceManager.cpp" 
+    "SwapChain.h" 
+    "SwapChain.cpp" 
+    "meshes/Mesh.h" 
+    "meshes/Mesh.cpp" 
+    "Scene.h" 
+    "Scene.cpp" 
+    "Camera.h" 
+    "Camera.cpp" 
+    "texture/Texture.h" 
+    "texture/Texture.cpp" 
+    "texture/Material.h" 
+    "texture/Material.cpp" 
+    "texture/MaterialManager.h" 
+    "texture/MaterialManager.cpp"
+)
 
 # Create the executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES} )
 add_dependencies(${PROJECT_NAME} Shaders)
+
 # Link libraries
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Vulkan_LIBRARIES} glfw)
