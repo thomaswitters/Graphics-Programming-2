@@ -43,18 +43,35 @@ void Scene<VertexType>::update(float deltaTime) {
         m_Meshes[0].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-8.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
     }
     if (!m_Meshes.empty()) {
-        m_Meshes[3].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        m_Meshes[3].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(1.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
     }
 
     if (m_Meshes.size() > 1) {
-        float radius = 13.0f;
-        float angle = m_RotationAngle * 0.5f;
+        float radiusX = 15.0f;
+        float radiusZ = 15.0f;
+        float radiusY = 15.0f;
+        float speed = 1.0f;
+        float time = m_RotationAngle * speed;
 
-        float x = radius * cos(angle);
-        float z = radius * sin(angle);
+        float x = radiusX * cos(time);
+        float z = radiusZ * sin(time);
+        float y = radiusY * sin(time * 2);
 
-        m_Meshes[1].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-11 + x, 0.5f, z)) *
-            glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        glm::vec2 direction = glm::normalize(glm::vec2(cos(time), sin(time)));
+
+        float forwardAngle = atan2(direction.y, direction.x);
+
+        float verticalSpeed = radiusY * cos(time * 2);
+        float tiltAngle = atan2(verticalSpeed, sqrt(x * x + z * z));
+
+        m_Meshes[1].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3( -11.5f, 0.5f, 0 ))
+            * glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z))
+            * glm::rotate(glm::mat4(1.0f), forwardAngle, glm::vec3(0.0f, -1.0f, 0.0f))
+            * glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f))
+            * glm::rotate(glm::mat4(1.0f), tiltAngle, glm::vec3(0.0f, 0.0f, 1.0f))
+            * glm::rotate(glm::mat4(1.0f), m_RotationAngle * 2.5f, glm::vec3(1.0f, 0.0f, 0.0f))
+            * glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.2f, 0.2f));
+
     }
 }
 
@@ -198,7 +215,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
     auto myMaterial = materialManager.createMaterial(device, { texture, texture2, texture3, texture4 });
 
     auto brickTexture = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/bricks/Bricks_diffuse.png");
-    auto brickTexture2 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/bricks/Bricks_normal.png");
+    auto brickTexture2 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/bricks/Bricks_normal_small.png");
     auto brickTexture3 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/bricks/Bricks_specular.png");
     auto brickTexture4 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/bricks/Bricks_gloss.png");
 
@@ -211,15 +228,14 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
 
     auto mydefaultTextureMaterial = materialManager.createMaterial(device, { defaultTexture, defaultTexture2, defaultTexture3, defaultTexture4 });
 
-    auto dirt3Texture = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Diffuse_small.png");
-    auto dirt3Texture2 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Normal.png");
-    auto dirt3Texture3 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Specular_small.png");
-    auto dirt3Texture4 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Gloss_small.png");
+    auto dirtTexture = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Diffuse_small.png");
+    auto dirtTexture2 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Normal_small.png");
+    auto dirtTexture3 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Specular_small.png");
+    auto dirtTexture4 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/dirt/Dirt wet_4K_Gloss_small.png");
 
-    auto myDirt3TextureMaterial = materialManager.createMaterial(device, { dirt3Texture, dirt3Texture2, dirt3Texture3, dirt3Texture4 });
+    auto myDirtTextureMaterial = materialManager.createMaterial(device, { dirtTexture, dirtTexture2, dirtTexture3, dirtTexture4 });
 
 
-    // Load a model
     Mesh<VertexType> sphere;
     std::vector<VertexType> sphereVertices;
     std::vector<uint32_t> sphereIndices;
@@ -229,7 +245,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         sphere.setVertices(sphereVertices);
         sphere.setIndices(sphereIndices);
         sphere.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -8.5f, 0.5f, 0 });
-        sphere.m_Material = myDirt3TextureMaterial;
+        sphere.m_Material = myDirtTextureMaterial;
 
         addMesh(sphere, device, physDevice, queueFamily, graphicsQueue);
     }
