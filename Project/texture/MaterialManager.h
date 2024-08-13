@@ -6,7 +6,7 @@ class MaterialManager {
 public:
     MaterialManager() = default;
 
-    void CreateMaterialPool(const VkDevice& device, int maxMaterialCount, int maxTexturesPerMaterial);
+    void createMaterialPool(const VkDevice& device, int maxMaterialCount, int maxTexturesPerMaterial);
     std::shared_ptr<Material> createMaterial(const VkDevice& device, const std::vector<std::shared_ptr<Texture>>& textures);
 
     VkDescriptorSetLayout getMaterialSetLayout() const { return m_DescriptorSetLayout; }

@@ -16,6 +16,11 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+enum class ShapeType {
+    Box,
+    Sphere
+};
+
 template <typename VertexType>
 class Mesh {
 public:
@@ -38,9 +43,9 @@ public:
     static Mesh<Vertex2D> CreateEllipse(glm::vec2 center, float width, float height, const glm::vec3& innerColor, const glm::vec3& outerColor, int nrOfVertexes);
 
 
-    void createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox);
+    void createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox, ShapeType shapeType);
     void updatePhysics(float deltaTime);
-    void moveLeft(float speed);
+    void applyImpulseOnce(const btVector3& impulse);
 
     glm::mat4 m_ModelMatrix = glm::mat4(1.0f);
     std::shared_ptr<Material> m_Material{};
@@ -55,6 +60,8 @@ private:
     float m_BoundingBoxWidth{};
     float m_BoundingBoxHeight{};
     float m_BoundingBoxDepth{};
+
+    bool m_ImpulseApplied = false;
 };
 
 
@@ -128,13 +135,20 @@ void Mesh<VertexType>::cleanUp(const VkDevice& device) {
 }
 
 template <typename VertexType>
-void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox) {
+void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox, ShapeType shapeType) {
+    std::unique_ptr<btCollisionShape> shape;
     m_BoundingBoxWidth = m_BoundingBox.x;
     m_BoundingBoxHeight = m_BoundingBox.y;
     m_BoundingBoxDepth = m_BoundingBox.z;
-    
-    btVector3 halfExtents(m_BoundingBoxWidth / 2, m_BoundingBoxHeight / 2, m_BoundingBoxDepth / 2);
-    auto shape = std::make_unique<btBoxShape>(halfExtents);
+
+    if (shapeType == ShapeType::Box) {
+        btVector3 halfExtents(m_BoundingBoxWidth / 2, m_BoundingBoxHeight / 2, m_BoundingBoxDepth / 2);
+        shape = std::make_unique<btBoxShape>(halfExtents);
+    }
+    else if (shapeType == ShapeType::Sphere) {
+        float radius = m_BoundingBoxWidth / 2;
+        shape = std::make_unique<btSphereShape>(radius);
+    }
 
     btVector3 inertia(0, 0, 0);
     if (mass != 0.0f) {
@@ -152,10 +166,10 @@ void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mas
 }
 
 template <typename VertexType>
-void Mesh<VertexType>::moveLeft(float speed) {
-    if (m_PhysicsBody) {
-        btVector3 force(-speed, 0.0f, 0.0f);
-        m_PhysicsBody->applyCentralForce(force);
+void Mesh<VertexType>::applyImpulseOnce(const btVector3& impulse) {
+    if (m_PhysicsBody && !m_ImpulseApplied) {
+        m_PhysicsBody->applyCentralImpulse(impulse);
+        m_ImpulseApplied = true;
     }
 }
 

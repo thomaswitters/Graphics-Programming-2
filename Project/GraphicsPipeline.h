@@ -30,7 +30,6 @@ public:
     VkPipelineLayout getPipelineLayout() const { return m_PipelineLayout; }
     VkPipeline getGraphicsPipeline() const { return m_GraphicsPipeline; }
 
-
     void bind(VkCommandBuffer commandBuffer, SwapChain swapChain, int imageIndex);
     void updateUBO(int imageIndex, void* uboData, VkDeviceSize uboSize);
     void updatePushConstrant(VkCommandBuffer commandBuffer, void* pushConstrants, uint32_t pushConstrantSize = 0U);

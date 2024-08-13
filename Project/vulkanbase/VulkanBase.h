@@ -55,7 +55,7 @@ private:
 		m_commandPool.initialize(device, findQueueFamilies(m_DeviceManager.getPhysicalDevice(), surface));
 		m_commandBuffer = m_commandPool.createCommandBuffer(device);
 
-		materialManager.CreateMaterialPool(device, 4, 4);
+		materialManager.createMaterialPool(device, 4, 4);
 		// week 03
 		//2D scene
 		m_graphicsPipeline2D.initialize(device, m_DeviceManager.getPhysicalDevice(), m_swapChain, m_renderPass, sizeof(UniformBufferObject2D));
@@ -85,6 +85,7 @@ private:
 			glfwPollEvents();
 			m_camera.update(window);
 			myScene3D_PBR.update3D_PBR(m_camera.elapsedSec);
+
 			// week 06
 			drawFrame();
 		}

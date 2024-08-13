@@ -7,7 +7,6 @@
 class Texture {
 public:
     Texture(const VkDevice& device, const VkPhysicalDevice& physDevice, const VkCommandPool& commandPool, const VkQueue& graphicsQueue, const std::string& texturePath);
-    ~Texture() = default;
 
     void cleanup(const VkDevice& device);
 

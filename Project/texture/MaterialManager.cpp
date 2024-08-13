@@ -1,6 +1,6 @@
 #include "MaterialManager.h"
 
-void MaterialManager::CreateMaterialPool(const VkDevice& device, int maxMaterialCount, int maxTexturesPerMaterial)
+void MaterialManager::createMaterialPool(const VkDevice& device, int maxMaterialCount, int maxTexturesPerMaterial)
 {
     if (m_DescriptorPool != VK_NULL_HANDLE && m_DescriptorSetLayout != VK_NULL_HANDLE) {
         return; // Pool and layout already created
