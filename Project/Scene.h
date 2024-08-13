@@ -41,17 +41,17 @@ void Scene<VertexType>::update3D_PBR(float deltaTime) {
     physicsEngine.stepSimulation(simulationTimestep);
 
     if (!m_Meshes.empty()) {
+        Mesh<VertexType>& mesh = m_Meshes[3];
+        mesh.updatePhysics(deltaTime);
+    }
+
+    if (!m_Meshes.empty()) {
         Mesh<VertexType>& mesh = m_Meshes[4];
         mesh.updatePhysics(deltaTime);
     }
 
     if (!m_Meshes.empty()) {
         Mesh<VertexType>& mesh = m_Meshes[5];
-        mesh.updatePhysics(deltaTime);
-    }
-
-    if (!m_Meshes.empty()) {
-        Mesh<VertexType>& mesh = m_Meshes[6];
 
         const float forceMagnitude = 100.0f;
         mesh.applyImpulseOnce(btVector3(forceMagnitude, 0.0f, 0.0f));
@@ -61,7 +61,7 @@ void Scene<VertexType>::update3D_PBR(float deltaTime) {
     float numberOfCubes = 125.0f;
     for (int i = 0; i < numberOfCubes; i++)
     {
-        Mesh<VertexType>& mesh = m_Meshes[i + 7];
+        Mesh<VertexType>& mesh = m_Meshes[i + 6];
         mesh.updatePhysics(deltaTime);
     }
 
@@ -71,10 +71,10 @@ void Scene<VertexType>::update3D_PBR(float deltaTime) {
     m_RotationAngle += rotationSpeed * deltaTime;
     
     if (!m_Meshes.empty()) {
-        m_Meshes[3].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-8.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
+        m_Meshes[2].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-8.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
     }
     if (!m_Meshes.empty()) {
-        m_Meshes[2].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(1.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        m_Meshes[1].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(1.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
     }
 
     if (m_Meshes.size() > 1) {
@@ -94,7 +94,7 @@ void Scene<VertexType>::update3D_PBR(float deltaTime) {
         float verticalSpeed = radiusY * cos(time * 2);
         float tiltAngle = atan2(verticalSpeed, sqrt(x * x + z * z));
 
-        m_Meshes[0].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-11.5f, 0.5f, 0))
+        m_Meshes[0].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-7.5f, 0.5f, 0))
             * glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z))
             * glm::rotate(glm::mat4(1.0f), forwardAngle, glm::vec3(0.0f, -1.0f, 0.0f))
             * glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f))
@@ -279,7 +279,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         addMesh(vehicle, device, physDevice, queueFamily, graphicsQueue);
     }
 
-    Mesh<VertexType> diorama;
+    /*Mesh<VertexType> diorama;
     std::vector<VertexType> dioramaVertices;
     std::vector<uint32_t> dioramaIndices;
 
@@ -289,7 +289,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         diorama.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { 4.0f, 0.0f, 25.0f }) * rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
         diorama.m_Material = mydefaultTextureMaterial;
         addMesh(diorama, device, physDevice, queueFamily, graphicsQueue);
-    }
+    }*/
 
     Mesh<VertexType> square;
     std::vector<VertexType> squareVertices;
@@ -336,11 +336,11 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
             sphere.setVertices(sphereVertices);
             sphere.setIndices(sphereIndices);
 
-            btVector3 initialPosition(-22.0f, 14.3f, 0);
+            btVector3 initialPosition(-10.0f, 20.3f, 7.0f);
             btQuaternion initialRotation(0, 0, 0, 1);
             btTransform initialTransform(initialRotation, initialPosition);
 
-            sphere.createPhysicsBody(physicsEngine, 1.f, glm::vec3(2.0f, 2.0f, 2.0f), ShapeType::Sphere, true, 0.8f);
+            sphere.createPhysicsBody(physicsEngine, 1.f, glm::vec3(2.0f, 2.0f, 2.0f), ShapeType::Sphere, true, 0.9f);
 
             sphere.m_PhysicsBody->setWorldTransform(initialTransform);
             sphere.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
@@ -365,7 +365,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         square2.setVertices(square2Vertices);
         square2.setIndices(square2Indices);
 
-        btVector3 initialPosition(-22.0f, -0.5f, 0.0f);
+        btVector3 initialPosition(-10.0f, -0.5f, 7.0f);
         btQuaternion initialRotation(0, 0, 0, 1);
         btTransform initialTransform(initialRotation, initialPosition);
 

@@ -19,7 +19,7 @@
 #include <Vertex.h>
 #include <CommandBuffer.h>
 #include <CommandPool.h>
-#include <VulkanBufferHandler.h>
+#include <DataBuffer.h>
 #include <VulkanDeviceManager.h>
 #include <SwapChain.h>
 #include <GraphicsPipeline.h>
