@@ -52,9 +52,10 @@ public:
     {
         auto currentTime = std::chrono::high_resolution_clock::now();
 
-        elapsedSec = std::chrono::duration<float>(currentTime - lastTime).count();
+        auto duration = std::chrono::duration<float>(currentTime - lastTime);
+        elapsedSec = duration.count();
 
-        const float maxDeltaTime = 0.1f;
+        constexpr float maxDeltaTime = 0.1f;
         if (elapsedSec > maxDeltaTime) {
             elapsedSec = maxDeltaTime;
         }

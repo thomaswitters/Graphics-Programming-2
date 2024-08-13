@@ -28,11 +28,9 @@ FetchContent_MakeAvailable(bullet)
 # Find the required packages
 find_package(Vulkan REQUIRED)
 
-include_directories(${Vulkan_INCLUDE_DIRS})
-include_directories(${bullet_SOURCE_DIR}/src)
-
 # Include Directories
 include_directories(${Vulkan_INCLUDE_DIRS})
+include_directories(${bullet_SOURCE_DIR}/src)
 
 add_subdirectory(Project)
 

@@ -34,8 +34,6 @@ public:
     void setVertices(const std::vector<VertexType>& vertices) { m_Vertices = vertices; }
     void setIndices(const std::vector<uint32_t>& indices) { m_Indices = indices; }
 
-    const DescriptorPool& getDescriptorPool() const { return m_DescriptorPool; }
-
     static  Mesh<Vertex2D> CreateRectangle(glm::vec2 center, float width, float height, const glm::vec3& color);
     static Mesh<Vertex2D> CreateRectangle(glm::vec2 center, float width, float height, const std::vector<glm::vec3>& colors);
 
@@ -43,7 +41,7 @@ public:
     static Mesh<Vertex2D> CreateEllipse(glm::vec2 center, float width, float height, const glm::vec3& innerColor, const glm::vec3& outerColor, int nrOfVertexes);
 
 
-    void createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox, ShapeType shapeType);
+    void createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox, ShapeType shapeType, bool useGravity = true, float restitution = 0.0f);
     void updatePhysics(float deltaTime);
     void applyImpulseOnce(const btVector3& impulse);
 
@@ -135,7 +133,7 @@ void Mesh<VertexType>::cleanUp(const VkDevice& device) {
 }
 
 template <typename VertexType>
-void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox, ShapeType shapeType) {
+void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox, ShapeType shapeType, bool useGravity, float restitution) {
     std::unique_ptr<btCollisionShape> shape;
     m_BoundingBoxWidth = m_BoundingBox.x;
     m_BoundingBoxHeight = m_BoundingBox.y;
@@ -159,7 +157,12 @@ void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mas
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState.get(), shape.get(), inertia);
     m_PhysicsBody = std::make_unique<btRigidBody>(rbInfo);
 
+    m_PhysicsBody->setRestitution(restitution);
+
     physicsEngine.getDynamicsWorld()->addRigidBody(m_PhysicsBody.get());
+    if (!useGravity) {
+        m_PhysicsBody->setGravity(btVector3(0, 0, 0));
+    }
 
     shape.release();
     motionState.release();

@@ -13,7 +13,7 @@ public:
         dynamicsWorld = std::make_unique<btDiscreteDynamicsWorld>(
             dispatcher.get(), broadphase.get(), solver.get(), collisionConfig.get()
         );
-        dynamicsWorld->setGravity(btVector3(0, 0, 0));
+        dynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
     }
 
     void stepSimulation(float deltaTime) {
