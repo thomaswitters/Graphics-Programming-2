@@ -84,7 +84,7 @@ private:
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
 			m_camera.update(window);
-			myScene3D_PBR.update(m_camera.elapsedSec);
+			myScene3D_PBR.update3D_PBR(m_camera.elapsedSec);
 			// week 06
 			drawFrame();
 		}
@@ -193,7 +193,7 @@ private:
 		return VK_FALSE;
 	}
 
-	Camera m_camera{glm::vec3(2.f, 2.f, -2.f), 45.f, WIDTH, HEIGHT };
+	Camera m_camera{glm::vec3(-2.f, 5.f, -30.f), 45.f, WIDTH, HEIGHT };
 
 	float lastX = 400, lastY = 300;
 	bool firstMouse = true;

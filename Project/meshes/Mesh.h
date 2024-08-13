@@ -1,12 +1,16 @@
 #pragma once
 #include "vulkan/vulkan_core.h"
 #include <vector>
-#include <glm/fwd.hpp>
-#include <Vertex.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp> // For glm::quat
+#include <glm/gtc/matrix_transform.hpp> // For glm::translate, etc.
+#include <glm/gtc/type_ptr.hpp> // For glm::value_ptr, if needed
+#include "Vertex.h"
 #include "DescriptorPool.h"
 #include "VulkanBufferHandler.h"
 #include "CommandBuffer.h"
 #include "texture/Material.h"
+#include <PhysicsEngine/PhysicsEngine.h>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -15,8 +19,6 @@
 template <typename VertexType>
 class Mesh {
 public:
-    Mesh() = default;
-
     void initialize(const VkDevice& device, const VkPhysicalDevice& physDevice, QueueFamilyIndices queueFamily, VkQueue graphicsQueue, const std::vector<VertexType> vertices, std::vector<uint32_t> indices);
     void draw(CommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const;
     void cleanUp(const VkDevice& device);
@@ -35,14 +37,24 @@ public:
     static Mesh<Vertex2D> CreateEllipse(glm::vec2 center, float width, float height, const glm::vec3& color, int nrOfVertexes);
     static Mesh<Vertex2D> CreateEllipse(glm::vec2 center, float width, float height, const glm::vec3& innerColor, const glm::vec3& outerColor, int nrOfVertexes);
 
-    glm::mat4 m_ModelMatrix = glm::mat4(1.0f);
-    std::shared_ptr<Material> m_Material;
-private:
-    std::unique_ptr<DataBuffer> m_VertexBuffer;
-    std::unique_ptr<DataBuffer> m_IndexBuffer;
 
-    std::vector<VertexType> m_Vertices;
-    std::vector<uint32_t> m_Indices;
+    void createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox);
+    void updatePhysics(float deltaTime);
+    void moveLeft(float speed);
+
+    glm::mat4 m_ModelMatrix = glm::mat4(1.0f);
+    std::shared_ptr<Material> m_Material{};
+    std::unique_ptr<btRigidBody> m_PhysicsBody = nullptr;
+private:
+    std::unique_ptr<DataBuffer> m_VertexBuffer{};
+    std::unique_ptr<DataBuffer> m_IndexBuffer{};
+
+    std::vector<VertexType> m_Vertices{};
+    std::vector<uint32_t> m_Indices{};
+
+    float m_BoundingBoxWidth{};
+    float m_BoundingBoxHeight{};
+    float m_BoundingBoxDepth{};
 };
 
 
@@ -113,4 +125,62 @@ template <typename VertexType>
 void Mesh<VertexType>::cleanUp(const VkDevice& device) {
     m_VertexBuffer->destroy(device);
     m_IndexBuffer->destroy(device);
+}
+
+template <typename VertexType>
+void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mass, glm::vec3 m_BoundingBox) {
+    m_BoundingBoxWidth = m_BoundingBox.x;
+    m_BoundingBoxHeight = m_BoundingBox.y;
+    m_BoundingBoxDepth = m_BoundingBox.z;
+    
+    btVector3 halfExtents(m_BoundingBoxWidth / 2, m_BoundingBoxHeight / 2, m_BoundingBoxDepth / 2);
+    auto shape = std::make_unique<btBoxShape>(halfExtents);
+
+    btVector3 inertia(0, 0, 0);
+    if (mass != 0.0f) {
+        shape->calculateLocalInertia(mass, inertia);
+    }
+
+    auto motionState = std::make_unique<btDefaultMotionState>(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
+    btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState.get(), shape.get(), inertia);
+    m_PhysicsBody = std::make_unique<btRigidBody>(rbInfo);
+
+    physicsEngine.getDynamicsWorld()->addRigidBody(m_PhysicsBody.get());
+
+    shape.release();
+    motionState.release();
+}
+
+template <typename VertexType>
+void Mesh<VertexType>::moveLeft(float speed) {
+    if (m_PhysicsBody) {
+        btVector3 force(-speed, 0.0f, 0.0f);
+        m_PhysicsBody->applyCentralForce(force);
+    }
+}
+
+template <typename VertexType>
+void Mesh<VertexType>::updatePhysics(float deltaTime) {
+    if (m_PhysicsBody) {
+        btTransform trans;
+        m_PhysicsBody->getMotionState()->getWorldTransform(trans);
+
+        glm::vec3 scale = glm::vec3(
+            glm::length(glm::vec3(m_ModelMatrix[0])),
+            glm::length(glm::vec3(m_ModelMatrix[1])),
+            glm::length(glm::vec3(m_ModelMatrix[2]))
+        );
+
+        glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(trans.getOrigin().x(), trans.getOrigin().y(), trans.getOrigin().z()));
+
+        glm::quat rotation(
+            trans.getRotation().getW(),
+            trans.getRotation().getX(),
+            trans.getRotation().getY(),
+            trans.getRotation().getZ()
+        );
+        glm::mat4 rotationMatrix = glm::mat4_cast(rotation);
+
+        m_ModelMatrix = translationMatrix * rotationMatrix * glm::scale(glm::mat4(1.0f), scale);
+    }
 }

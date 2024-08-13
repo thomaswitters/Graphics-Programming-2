@@ -17,9 +17,19 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw)
 
+FetchContent_Declare(
+    bullet
+    GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
+    GIT_TAG        master
+)
+
+FetchContent_MakeAvailable(bullet)
 
 # Find the required packages
 find_package(Vulkan REQUIRED)
+
+include_directories(${Vulkan_INCLUDE_DIRS})
+include_directories(${bullet_SOURCE_DIR}/src)
 
 # Include Directories
 include_directories(${Vulkan_INCLUDE_DIRS})

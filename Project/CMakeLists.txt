@@ -23,6 +23,7 @@ add_custom_target(
     DEPENDS ${SPIRV_BINARY_FILES}
 )
 
+file(COPY models DESTINATION .)
 
 set(SOURCES
     "main.cpp"
@@ -67,12 +68,14 @@ set(SOURCES
     "texture/Material.cpp" 
     "texture/MaterialManager.h" 
     "texture/MaterialManager.cpp"
+    "PhysicsEngine/PhysicsEngine.h" 
+    "PhysicsEngine/PhysicsEngine.cpp"
 )
 
 # Create the executable
-add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES} )
+add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES})
 add_dependencies(${PROJECT_NAME} Shaders)
 
 # Link libraries
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Vulkan_LIBRARIES} glfw)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${Vulkan_LIBRARIES} glfw BulletDynamics BulletCollision LinearMath)

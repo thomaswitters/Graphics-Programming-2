@@ -28,19 +28,53 @@ public:
     void draw3D_PBR(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex);
 
 
-    void update(float deltaTime);
+    void update3D_PBR(float deltaTime);
 private:
     std::vector<Mesh<VertexType>> m_Meshes;
     float m_RotationAngle = 0.0f;
+    PhysicsEngine physicsEngine;
 };
-
 template <typename VertexType>
-void Scene<VertexType>::update(float deltaTime) {
+void Scene<VertexType>::update3D_PBR(float deltaTime) {
     constexpr float rotationSpeed = glm::radians(90.0f);
     m_RotationAngle += rotationSpeed * deltaTime;
+    
+    physicsEngine.stepSimulation(deltaTime);
 
     if (!m_Meshes.empty()) {
-        m_Meshes[0].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-8.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
+        Mesh<VertexType>& mesh = m_Meshes[0];
+
+        if (mesh.m_PhysicsBody) {
+            const float forceMagnitude = 20.0f;
+            mesh.m_PhysicsBody->applyCentralForce(btVector3(forceMagnitude, 0.0f, 0.0f));
+        }
+
+        mesh.updatePhysics(deltaTime);
+    }
+    if (!m_Meshes.empty()) {
+        Mesh<VertexType>& mesh = m_Meshes[5];
+
+        mesh.updatePhysics(deltaTime);
+    }
+    if (!m_Meshes.empty()) {
+        Mesh<VertexType>& mesh = m_Meshes[6];
+
+        mesh.updatePhysics(deltaTime);
+    }
+    if (!m_Meshes.empty()) {
+        Mesh<VertexType>& mesh = m_Meshes[7];
+
+        mesh.updatePhysics(deltaTime);
+    }
+    if (!m_Meshes.empty()) {
+        Mesh<VertexType>& mesh = m_Meshes[8];
+
+        mesh.updatePhysics(deltaTime);
+    }
+
+    
+    if (!m_Meshes.empty()) {
+        m_Meshes[4].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-8.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
     }
     if (!m_Meshes.empty()) {
         m_Meshes[3].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(1.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
@@ -58,20 +92,18 @@ void Scene<VertexType>::update(float deltaTime) {
         float y = radiusY * sin(time * 2);
 
         glm::vec2 direction = glm::normalize(glm::vec2(cos(time), sin(time)));
-
         float forwardAngle = atan2(direction.y, direction.x);
 
         float verticalSpeed = radiusY * cos(time * 2);
         float tiltAngle = atan2(verticalSpeed, sqrt(x * x + z * z));
 
-        m_Meshes[1].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3( -11.5f, 0.5f, 0 ))
+        m_Meshes[1].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-11.5f, 0.5f, 0))
             * glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z))
             * glm::rotate(glm::mat4(1.0f), forwardAngle, glm::vec3(0.0f, -1.0f, 0.0f))
             * glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f))
             * glm::rotate(glm::mat4(1.0f), tiltAngle, glm::vec3(0.0f, 0.0f, 1.0f))
             * glm::rotate(glm::mat4(1.0f), m_RotationAngle * 2.5f, glm::vec3(1.0f, 0.0f, 0.0f))
             * glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.2f, 0.2f));
-
     }
 }
 
@@ -244,7 +276,15 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
     if (ObjLoader::loadObjFile("models/sphere.obj", sphereVertices, sphereIndices)) {
         sphere.setVertices(sphereVertices);
         sphere.setIndices(sphereIndices);
-        sphere.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -8.5f, 0.5f, 0 });
+
+        btVector3 initialPosition(-25.5f, 6.3f, 1);
+        btQuaternion initialRotation(0, 0, 0, 1);
+        btTransform initialTransform(initialRotation, initialPosition);
+
+
+        sphere.createPhysicsBody(physicsEngine, 10.f, glm::vec3(1.f, 1.f, 1.f));
+        sphere.m_PhysicsBody->setWorldTransform(initialTransform);
+        sphere.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 0.5f, 0.5f, 0.5f });
         sphere.m_Material = myDirtTextureMaterial;
 
         addMesh(sphere, device, physDevice, queueFamily, graphicsQueue);
@@ -257,7 +297,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
     if (ObjLoader::loadObjFile("models/vehicle.obj", vehicleVertices, vehicleIndices)) {
         vehicle.setVertices(vehicleVertices);
         vehicle.setIndices(vehicleIndices);
-        vehicle.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { 0.5f, 0.5f, 0 }) * 
+        vehicle.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { 0.5f, 0.5f, 0 }) *
             glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
         vehicle.m_Material = myMaterial;
 
@@ -271,12 +311,10 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
     if (ObjLoader::loadObjFile("models/diorama.obj", dioramaVertices, dioramaIndices)) {
         diorama.setVertices(dioramaVertices);
         diorama.setIndices(dioramaIndices);
-        diorama.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { 20.0f, 0, 0 }) * rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        diorama.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { 4.0f, 0.0f, 25.0f }) * rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
         diorama.m_Material = mydefaultTextureMaterial;
-
         addMesh(diorama, device, physDevice, queueFamily, graphicsQueue);
     }
-
 
     Mesh<VertexType> square;
     std::vector<VertexType> squareVertices;
@@ -285,10 +323,117 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
     if (ObjLoader::loadObjFile("models/square.obj", squareVertices, squareIndices)) {
         square.setVertices(squareVertices);
         square.setIndices(squareIndices);
-        square.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -5.5f, 0.5, 0 }) * rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f));
+        square.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -5.5f, 0.5, 0 }) * rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.2f, 0.2f));
         square.m_Material = myBrickMaterial;
 
         addMesh(square, device, physDevice, queueFamily, graphicsQueue);
+    }
+
+
+    Mesh<VertexType> sphere2;
+    std::vector<VertexType> sphere2Vertices;
+    std::vector<uint32_t> sphere2Indices;
+
+    if (ObjLoader::loadObjFile("models/sphere.obj", sphere2Vertices, sphere2Indices)) {
+        
+        sphere2.setVertices(sphere2Vertices);
+        sphere2.setIndices(sphere2Indices);
+        sphere2.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -8.5f, 0.5f, 0 });
+        sphere2.m_Material = myDirtTextureMaterial;
+
+        addMesh(sphere2, device, physDevice, queueFamily, graphicsQueue);
+    }
+
+
+
+    // wall
+    std::vector<VertexType> cubeVertices;
+    std::vector<uint32_t> cubeIndices;
+
+    if (ObjLoader::loadObjFile("models/square.obj", cubeVertices, cubeIndices)) {
+        Mesh<VertexType> cube;
+
+        cube.setVertices(cubeVertices);
+        cube.setIndices(cubeIndices);
+
+        btVector3 initialPosition(0.5f, 5.3f, 0);
+        btQuaternion initialRotation(0, 0, 0, 1);
+        btTransform initialTransform(initialRotation, initialPosition);
+
+
+        cube.createPhysicsBody(physicsEngine, 1.f, glm::vec3(2.f, 2.f, 2.f));
+        cube.m_PhysicsBody->setWorldTransform(initialTransform);
+
+        cube.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        cube.m_Material = myBrickMaterial;
+
+        addMesh(cube, device, physDevice, queueFamily, graphicsQueue);
+    }
+
+    Mesh<VertexType> cube2;
+    std::vector<VertexType> cube2Vertices;
+    std::vector<uint32_t> cube2Indices;
+
+    if (ObjLoader::loadObjFile("models/square.obj", cube2Vertices, cube2Indices)) {
+        cube2.setVertices(cube2Vertices);
+        cube2.setIndices(cube2Indices);
+
+        btVector3 initialPosition(0.5f, 5.3f, 2.2);
+        btQuaternion initialRotation(0, 0, 0, 1);
+        btTransform initialTransform(initialRotation, initialPosition);
+
+
+        cube2.createPhysicsBody(physicsEngine, 1.f, glm::vec3(2.f, 2.f, 2.f));
+        cube2.m_PhysicsBody->setWorldTransform(initialTransform);
+
+        cube2.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        cube2.m_Material = myBrickMaterial;
+
+        addMesh(cube2, device, physDevice, queueFamily, graphicsQueue);
+    }
+
+    Mesh<VertexType> cube3;
+    std::vector<VertexType> cube3Vertices;
+    std::vector<uint32_t> cube3Indices;
+
+    if (ObjLoader::loadObjFile("models/square.obj", cube3Vertices, cube3Indices)) {
+        cube3.setVertices(cube3Vertices);
+        cube3.setIndices(cube3Indices);
+
+        btVector3 initialPosition(0.5f, 7.5f, 0);
+        btQuaternion initialRotation(0, 0, 0, 1);
+        btTransform initialTransform(initialRotation, initialPosition);
+
+
+        cube3.createPhysicsBody(physicsEngine, 1.f, glm::vec3(2.f, 2.f, 2.f));
+        cube3.m_PhysicsBody->setWorldTransform(initialTransform);
+
+        cube3.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        cube3.m_Material = myBrickMaterial;
+
+        addMesh(cube3, device, physDevice, queueFamily, graphicsQueue);
+    }
+
+    Mesh<VertexType> cube4;
+    std::vector<VertexType> cube4Vertices;
+    std::vector<uint32_t> cube4Indices;
+
+    if (ObjLoader::loadObjFile("models/square.obj", cube4Vertices, cube4Indices)) {
+        cube4.setVertices(cube4Vertices);
+        cube4.setIndices(cube4Indices);
+
+        btVector3 initialPosition(0.5f, 7.5f, 2.2f);
+        btQuaternion initialRotation(0, 0, 0, 1);
+        btTransform initialTransform(initialRotation, initialPosition);
+
+
+        cube4.createPhysicsBody(physicsEngine, 1.f, glm::vec3(2.f, 2.f, 2.f));
+        cube4.m_PhysicsBody->setWorldTransform(initialTransform);
+
+        cube4.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+        cube4.m_Material = myBrickMaterial;
+
+        addMesh(cube4, device, physDevice, queueFamily, graphicsQueue);
     }
 }
 
