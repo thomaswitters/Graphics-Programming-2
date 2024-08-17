@@ -13,17 +13,11 @@ public:
 
     void initialize(VkDevice& device, const VkInstance& instance, const VkSurfaceKHR& surface);
 
-    const VkPhysicalDevice& getPhysicalDevice() const {
-         return m_PhysicalDevice;
-    }
+    const VkPhysicalDevice& getPhysicalDevice() const;
 
-    const VkQueue& getGraphicsQueue() const {
-        return m_GraphicsQueue;
-    }
+    const VkQueue& getGraphicsQueue() const;
 
-    const VkQueue& getPresentQueue() const {
-        return m_PresentQueue;
-    }
+    const VkQueue& getPresentQueue() const;
 private:
     void pickPhysicalDevice(const VkInstance& instance, const VkSurfaceKHR& surface);
     void createLogicalDevice(VkDevice& device, const VkSurfaceKHR& surface);

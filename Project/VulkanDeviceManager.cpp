@@ -89,3 +89,15 @@ bool VulkanDeviceManager::isDeviceSuitable(const VkPhysicalDevice& device, const
     bool extensionsSupported = checkDeviceExtensionSupport(device);
     return indices.isFullyDefined() && extensionsSupported;
 }
+
+const VkPhysicalDevice& VulkanDeviceManager::getPhysicalDevice() const {
+    return m_PhysicalDevice;
+}
+
+const VkQueue& VulkanDeviceManager::getGraphicsQueue() const {
+    return m_GraphicsQueue;
+}
+
+const VkQueue& VulkanDeviceManager::getPresentQueue() const {
+    return m_PresentQueue;
+}
