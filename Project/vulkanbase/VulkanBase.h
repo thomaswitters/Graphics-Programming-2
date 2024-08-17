@@ -58,7 +58,7 @@ private:
     GLFWwindow* m_pWindow;
     MaterialManager m_MaterialManager;
 
-    VkRenderPass m_RenderPass;
+    VkRenderPass m_RenderPass = VK_NULL_HANDLE;;
     std::vector<VkFramebuffer> m_SwapChainFramebuffers;
 
     CommandPool m_CommandPool;
@@ -74,14 +74,14 @@ private:
     Scene<Vertex3D> m_MyScene3D;
     Scene<Vertex3D_PBR> m_MyScene3D_PBR;
 
-    VkInstance m_Instance;
-    VkDebugUtilsMessengerEXT m_DebugMessenger;
+    VkInstance m_Instance = VK_NULL_HANDLE;;
+    VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;;
     VkDevice m_Device = VK_NULL_HANDLE;
-    VkSurfaceKHR m_Surface;
+    VkSurfaceKHR m_Surface = VK_NULL_HANDLE;;
 
-    VkSemaphore m_ImageAvailableSemaphore;
-    VkSemaphore m_RenderFinishedSemaphore;
-    VkFence m_InFlightFence;
+    VkSemaphore m_ImageAvailableSemaphore = VK_NULL_HANDLE;;
+    VkSemaphore m_RenderFinishedSemaphore = VK_NULL_HANDLE;;
+    VkFence m_InFlightFence = VK_NULL_HANDLE;;
 
     Camera m_Camera{ glm::vec3(-2.f, 15.f, -60.f), 45.f, WIDTH, HEIGHT };
 
