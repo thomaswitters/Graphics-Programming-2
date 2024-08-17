@@ -53,6 +53,17 @@ struct UniformBufferObject3D {
     glm::vec4 viewPosition;
 };
 
+struct UniformBufferObject3D_PBR {
+    glm::mat4 viewProjection;
+    glm::vec4 viewPosition;
+    glm::vec3 lightDirection;
+};
+
+struct MeshPushConstantsPBR {
+    glm::mat4 model;
+    int renderMode;
+};
+
 struct MeshPushConstants {
     glm::mat4 model;
 };

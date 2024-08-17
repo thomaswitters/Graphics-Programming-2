@@ -1,12 +1,18 @@
 #version 450
 
-
 const float M_PI = 3.14159265358979323846;
 
 layout(set = 0, binding = 0) uniform UniformBufferObject {
     mat4 viewProjection;
     vec4 viewPosition;
+    vec3 lightDirection;
 } ubo;
+
+layout(push_constant) uniform PushConstants
+{
+    mat4 model;
+    int renderMode;
+} push;
 
 layout(set = 1, binding = 0) uniform sampler2D diffuseSample;
 layout(set = 1, binding = 1) uniform sampler2D normalSample;
@@ -21,7 +27,6 @@ layout(location = 4) in vec2 inUV;
 
 layout(location = 0) out vec4 outColor;
 
-vec3 lightDirection = normalize(vec3(0.0, 0.8, -0.6));
 vec3 lightColor = vec3(1.0);
 vec3 ambientLight = vec3(0.05);
 
@@ -75,7 +80,7 @@ void main() {
     normal = normalize(TBN * normal);
 
     vec3 viewDir = normalize(ubo.viewPosition.xyz - inWorldPosition);
-    vec3 lightDir = normalize(lightDirection);
+    vec3 lightDir = normalize(ubo.lightDirection);
 
     vec3 F0 = mix(vec3(0.04), specularColor, specularColor);
 
@@ -86,7 +91,21 @@ void main() {
 
     vec3 ambient = ambientLight * diffuse;
 
-    vec3 finalColor = ambient + diffuseLighting * (1.0 - max(max(specular.r, specular.g), specular.b)) + specular * lightColor;
+    vec3 finalColor;
+    switch (push.renderMode) {
+        case 0:
+            finalColor = diffuse * diffuseLighting;
+            break;
+        case 1:
+            finalColor = normal;
+            break;
+        case 2:
+            finalColor = specular;
+            break;
+        default:
+            finalColor = ambient + diffuseLighting * (1.0 - max(max(specular.r, specular.g), specular.b)) + specular * lightColor;
+            break;
+    }
 
     outColor = vec4(clamp(finalColor, 0.0, 1.0), 1.0);
 }

@@ -4,11 +4,13 @@ layout(set = 0, binding = 0) uniform UniformBufferObject
 {
     mat4 viewProjection;
     vec4 viewPosition;
+    vec3 lightDirection;
 } ubo;
 
 layout(push_constant) uniform PushConstants
 {
     mat4 model;
+    int renderMode;
 } push;
 
 layout(location = 0) in vec3 inPosition;
@@ -36,4 +38,3 @@ void main() {
 
     gl_Position = ubo.viewProjection * vec4(outWorldPosition, 1.0);
 }
-

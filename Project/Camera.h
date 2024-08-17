@@ -14,13 +14,17 @@ public:
     ~Camera() = default;
 
     void update(GLFWwindow* window);
-    void onMouseMove(double xpos, double ypos, float& lastX, float& lastY);
+    void updateLightDirection(float dx, float dy);
+
+    void onMouseMove(GLFWwindow* window, double xpos, double ypos, float& lastX, float& lastY);
     glm::mat4 getViewProjection(float nearPlane, float farPlane);
     glm::mat4 getOrthoProjectionMatrix();
     void setAspectRatio(float aspectRatio);
 
     float getElapsedSec();
     glm::vec3 getOrigin();
+
+    glm::vec3 getLightDirection() const;
 private:
     void updateElapsedTime();
     glm::mat4 calculateCameraToWorld() const;
@@ -43,4 +47,6 @@ private:
 
     std::chrono::high_resolution_clock::time_point m_LastTime;
     float m_ElapsedSec = 0.0f;
+
+    glm::vec3 m_LightDirection = { 0.0f, 0.8f, -0.6f };
 };

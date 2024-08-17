@@ -21,11 +21,11 @@ void VulkanBase::initWindow() {
             VulkanBase* vBase = static_cast<VulkanBase*>(pUser);
             vBase->MouseMove(window, xpos, ypos);
         });
-    glfwSetMouseButtonCallback(m_pWindow, [](GLFWwindow* window, int button, int action, int mods)
+    glfwSetKeyCallback(m_pWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods)
         {
             void* pUser = glfwGetWindowUserPointer(window);
             VulkanBase* vBase = static_cast<VulkanBase*>(pUser);
-            vBase->MouseEvent(window, button, action, mods);
+            vBase->KeyEvent(window, key, scancode, action, mods);
         });
 }
 
@@ -53,9 +53,9 @@ void VulkanBase::initVulkan() {
     m_MyScene3D.create3DScene(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue());
     m_GraphicsPipeline3D.createGraphicsPipeline<Vertex3D>(m_Device, m_SwapChain, sizeof(MeshPushConstants));
 
-    m_GraphicsPipeline3D_PBR.initialize(m_Device, m_DeviceManager.getPhysicalDevice(), m_SwapChain, m_RenderPass, sizeof(UniformBufferObject3D));
+    m_GraphicsPipeline3D_PBR.initialize(m_Device, m_DeviceManager.getPhysicalDevice(), m_SwapChain, m_RenderPass, sizeof(UniformBufferObject3D_PBR));
     m_MyScene3D_PBR.create3DScene_PBR(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue(), m_MaterialManager);
-    m_GraphicsPipeline3D_PBR.createGraphicsPipeline<Vertex3D_PBR>(m_Device, m_SwapChain, sizeof(MeshPushConstants), m_MaterialManager.getMaterialSetLayout());
+    m_GraphicsPipeline3D_PBR.createGraphicsPipeline<Vertex3D_PBR>(m_Device, m_SwapChain, sizeof(MeshPushConstantsPBR), m_MaterialManager.getMaterialSetLayout());
 
     createFrameBuffers();
     createSyncObjects();
@@ -257,7 +257,7 @@ void VulkanBase::drawFrame() {
 
     m_MyScene2D.draw2D(m_Camera, m_CommandBuffer, m_GraphicsPipeline2D, m_SwapChain, imageIndex);
     m_MyScene3D.draw3D(m_Camera, m_CommandBuffer, m_GraphicsPipeline3D, m_SwapChain, imageIndex);
-    m_MyScene3D_PBR.draw3D_PBR(m_Camera, m_CommandBuffer, m_GraphicsPipeline3D_PBR, m_SwapChain, imageIndex);
+    m_MyScene3D_PBR.draw3D_PBR(m_Camera, m_CommandBuffer, m_GraphicsPipeline3D_PBR, m_SwapChain, imageIndex, static_cast<int>(renderMode));
 
     vkCmdEndRenderPass(m_CommandBuffer.getVkCommandBuffer());
     m_CommandBuffer.endRecording();
@@ -409,10 +409,30 @@ void VulkanBase::MouseMove(GLFWwindow* window, double xpos, double ypos)
         m_FirstMouse = false;
     }
 
-    m_Camera.onMouseMove(xpos, ypos, m_LastX, m_LastY);
+    m_Camera.onMouseMove(window, xpos, ypos, m_LastX, m_LastY);
 }
 
-void VulkanBase::MouseEvent(GLFWwindow* window, int button, int action, int mods)
+void VulkanBase::KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    // Handle mouse button events if needed
+    if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+        switch (renderMode) {
+        case RenderModes::ONLY_ALBEDO:
+            renderMode = RenderModes::ONLY_NORMAL;
+            std::cout << "Render Mode changed to: Only Normals" << std::endl;
+            break;
+        case RenderModes::ONLY_NORMAL:
+            renderMode = RenderModes::ONLY_SPECULAR;
+            std::cout << "Render Mode changed to: Only Specular" << std::endl;
+            break;
+        case RenderModes::ONLY_SPECULAR:
+            renderMode = RenderModes::COMBINED;
+            std::cout << "Render Mode changed to: Combined" << std::endl;
+            break;
+        case RenderModes::COMBINED:
+            renderMode = RenderModes::ONLY_ALBEDO;
+            std::cout << "Render Mode changed to: Only Albedo" << std::endl;
+            break;
+        }
+        std::cout << "Render Mode changed to: " << static_cast<int>(renderMode) << std::endl;
+    }
 }

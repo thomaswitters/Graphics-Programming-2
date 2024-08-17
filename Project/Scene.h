@@ -26,7 +26,7 @@ public:
 
     void draw2D(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex);
     void draw3D(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex);
-    void draw3D_PBR(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex);
+    void draw3D_PBR(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex, int renderMode);
 
 
     void update3D_PBR(float deltaTime);
@@ -476,18 +476,20 @@ void Scene<VertexType>::draw3D(Camera& camera, CommandBuffer& commandBuffer, Gra
 }
 
 template <typename VertexType>
-void Scene<VertexType>::draw3D_PBR(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex) {
-    UniformBufferObject3D ubo3D{};
+void Scene<VertexType>::draw3D_PBR(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex, int renderMode) {
+    UniformBufferObject3D_PBR ubo3D{};
     ubo3D.viewProjection = camera.getViewProjection(0.1f, 200.f);
     ubo3D.viewPosition = glm::vec4(camera.getOrigin(), 1.0f);
+    ubo3D.lightDirection = camera.getLightDirection();
 
     graphicsPipeline.bind(commandBuffer.getVkCommandBuffer(), swapChain, imageIndex);
     graphicsPipeline.updateUBO(imageIndex, &ubo3D, sizeof(ubo3D));
 
     for (auto& mesh : m_Meshes) {
-        MeshPushConstants meshPushConstant{};
+        MeshPushConstantsPBR meshPushConstant{};
         meshPushConstant.model = mesh.m_ModelMatrix;
-
+        meshPushConstant.renderMode = renderMode;
+        
         graphicsPipeline.updatePushConstrant(commandBuffer.getVkCommandBuffer(), &meshPushConstant, sizeof(meshPushConstant));
 
         if (mesh.m_pMaterial != nullptr)

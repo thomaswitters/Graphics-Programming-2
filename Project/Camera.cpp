@@ -34,7 +34,7 @@ glm::mat4 Camera::calculateCameraToWorld() const
     );
 }
 
-void Camera::onMouseMove(double xpos, double ypos, float& lastX, float& lastY)
+void Camera::onMouseMove(GLFWwindow* window, double xpos, double ypos, float& lastX, float& lastY)
 {
     float dx = float(xpos) - lastX;
     float dy = float(ypos) - lastY;
@@ -42,17 +42,36 @@ void Camera::onMouseMove(double xpos, double ypos, float& lastX, float& lastY)
     lastX = float(xpos);
     lastY = float(ypos);
 
-    const float sensitivity = 0.1f;
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        updateLightDirection(dx, dy);
+    }
+    else {
+        const float sensitivity = 0.1f;
+
+        m_TotalYaw -= dx * sensitivity;
+        m_TotalPitch -= dy * sensitivity;
+
+        m_TotalPitch = std::clamp(m_TotalPitch, -89.0f, 89.0f);
+
+        const glm::mat4x4 pitchYawRotation = glm::yawPitchRoll(glm::radians(m_TotalYaw), glm::radians(m_TotalPitch), 0.0f);
+        m_Right = glm::normalize(glm::vec3(pitchYawRotation[0]));
+        m_Up = glm::normalize(glm::vec3(pitchYawRotation[1]));
+        m_Forward = glm::normalize(glm::vec3(-pitchYawRotation[2]));
+    }
+}
+
+void Camera::updateLightDirection(float dx, float dy) {
+    float sensitivity = 0.005f;
 
     m_TotalYaw -= dx * sensitivity;
     m_TotalPitch -= dy * sensitivity;
 
-    m_TotalPitch = std::clamp(m_TotalPitch, -89.0f, 89.0f);
+    glm::vec3 direction;
+    direction.x = cos(m_TotalYaw) * cos(m_TotalPitch);
+    direction.y = sin(m_TotalPitch);
+    direction.z = sin(m_TotalYaw) * cos(m_TotalPitch);
 
-    const glm::mat4x4 pitchYawRotation = glm::yawPitchRoll(glm::radians(m_TotalYaw), glm::radians(m_TotalPitch), 0.0f);
-    m_Right = glm::normalize(glm::vec3(pitchYawRotation[0]));
-    m_Up = glm::normalize(glm::vec3(pitchYawRotation[1]));
-    m_Forward = glm::normalize(glm::vec3(-pitchYawRotation[2]));
+    m_LightDirection = glm::normalize(direction);
 }
 
 void Camera::update(GLFWwindow* window)
@@ -123,4 +142,8 @@ float Camera::getElapsedSec()
 glm::vec3 Camera::getOrigin()
 {
     return m_Origin;
+}
+
+glm::vec3 Camera::getLightDirection() const {
+    return m_LightDirection;
 }

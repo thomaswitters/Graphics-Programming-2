@@ -89,5 +89,14 @@ private:
     bool m_FirstMouse = true;
 
     void MouseMove(GLFWwindow* window, double xpos, double ypos);
-    void MouseEvent(GLFWwindow* window, int button, int action, int mods);
+    void KeyEvent(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+    enum class RenderModes {
+        ONLY_ALBEDO,
+        ONLY_NORMAL,
+        ONLY_SPECULAR,
+        COMBINED
+    };
+
+    RenderModes renderMode = RenderModes::COMBINED;
 };
