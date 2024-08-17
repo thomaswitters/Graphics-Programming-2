@@ -23,9 +23,12 @@
 #include <VulkanDeviceManager.h>
 #include <SwapChain.h>
 #include <GraphicsPipeline.h>
-#include <Scene.h>
 #include <Camera.h>
 #include "texture/MaterialManager.h"
+#include "scenes/SceneBase.h"
+#include "scenes/Scene2D.h"
+#include "scenes/Scene3D.h"
+#include "scenes/Scene3D_PBR.h"
 
 class VulkanBase {
 public:
@@ -70,9 +73,9 @@ private:
     GraphicsPipeline m_GraphicsPipeline3D_PBR{ "shaders/shader3D_PBR.vert.spv", "shaders/shader3D_PBR.frag.spv" };
 
     VulkanDeviceManager m_DeviceManager;
-    Scene<Vertex2D> m_MyScene2D;
-    Scene<Vertex3D> m_MyScene3D;
-    Scene<Vertex3D_PBR> m_MyScene3D_PBR;
+    Scene2D<Vertex2D> m_MyScene2D;
+    Scene3D<Vertex3D> m_MyScene3D;
+    Scene3D_PBR<Vertex3D_PBR> m_MyScene3D_PBR;
 
     VkInstance m_Instance = VK_NULL_HANDLE;;
     VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;;

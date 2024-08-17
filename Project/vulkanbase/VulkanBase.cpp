@@ -46,16 +46,16 @@ void VulkanBase::initVulkan() {
     m_MaterialManager.createMaterialPool(m_Device, 4, 4);
 
     m_GraphicsPipeline2D.initialize(m_Device, m_DeviceManager.getPhysicalDevice(), m_SwapChain, m_RenderPass, sizeof(UniformBufferObject2D));
-    m_MyScene2D.create2DScene(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue());
-    m_GraphicsPipeline2D.createGraphicsPipeline<Vertex2D>(m_Device, m_SwapChain, sizeof(MeshPushConstants));
+    m_MyScene2D.createScene(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue(), m_MaterialManager);
+    m_GraphicsPipeline2D.createGraphicsPipeline<Vertex2D>(m_Device, m_SwapChain, sizeof(PushConstants));
 
     m_GraphicsPipeline3D.initialize(m_Device, m_DeviceManager.getPhysicalDevice(), m_SwapChain, m_RenderPass, sizeof(UniformBufferObject3D));
-    m_MyScene3D.create3DScene(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue());
-    m_GraphicsPipeline3D.createGraphicsPipeline<Vertex3D>(m_Device, m_SwapChain, sizeof(MeshPushConstants));
+    m_MyScene3D.createScene(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue(), m_MaterialManager);
+    m_GraphicsPipeline3D.createGraphicsPipeline<Vertex3D>(m_Device, m_SwapChain, sizeof(PushConstants));
 
     m_GraphicsPipeline3D_PBR.initialize(m_Device, m_DeviceManager.getPhysicalDevice(), m_SwapChain, m_RenderPass, sizeof(UniformBufferObject3D_PBR));
-    m_MyScene3D_PBR.create3DScene_PBR(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue(), m_MaterialManager);
-    m_GraphicsPipeline3D_PBR.createGraphicsPipeline<Vertex3D_PBR>(m_Device, m_SwapChain, sizeof(MeshPushConstantsPBR), m_MaterialManager.getMaterialSetLayout());
+    m_MyScene3D_PBR.createScene(m_Device, m_DeviceManager.getPhysicalDevice(), m_CommandPool.getCommandPool(), findQueueFamilies(m_DeviceManager.getPhysicalDevice(), m_Surface), m_DeviceManager.getGraphicsQueue(), m_MaterialManager);
+    m_GraphicsPipeline3D_PBR.createGraphicsPipeline<Vertex3D_PBR>(m_Device, m_SwapChain, sizeof(PushConstantsPBR), m_MaterialManager.getMaterialSetLayout());
 
     createFrameBuffers();
     createSyncObjects();
@@ -65,7 +65,7 @@ void VulkanBase::mainLoop() {
     while (!glfwWindowShouldClose(m_pWindow)) {
         glfwPollEvents();
         m_Camera.update(m_pWindow);
-        m_MyScene3D_PBR.update3D_PBR(m_Camera.getElapsedSec());
+        m_MyScene3D_PBR.update(m_Camera.getElapsedSec());
         drawFrame();
     }
     vkDeviceWaitIdle(m_Device);
@@ -255,9 +255,9 @@ void VulkanBase::drawFrame() {
 
     beginRenderPass(m_SwapChain.getSwapChainExtent(), imageIndex);
 
-    m_MyScene2D.draw2D(m_Camera, m_CommandBuffer, m_GraphicsPipeline2D, m_SwapChain, imageIndex);
-    m_MyScene3D.draw3D(m_Camera, m_CommandBuffer, m_GraphicsPipeline3D, m_SwapChain, imageIndex);
-    m_MyScene3D_PBR.draw3D_PBR(m_Camera, m_CommandBuffer, m_GraphicsPipeline3D_PBR, m_SwapChain, imageIndex, static_cast<int>(renderMode));
+    m_MyScene2D.draw(m_Camera, m_CommandBuffer, m_GraphicsPipeline2D, m_SwapChain, imageIndex);
+    m_MyScene3D.draw(m_Camera, m_CommandBuffer, m_GraphicsPipeline3D, m_SwapChain, imageIndex);
+    m_MyScene3D_PBR.draw(m_Camera, m_CommandBuffer, m_GraphicsPipeline3D_PBR, m_SwapChain, imageIndex, static_cast<int>(renderMode));
 
     vkCmdEndRenderPass(m_CommandBuffer.getVkCommandBuffer());
     m_CommandBuffer.endRecording();

@@ -52,8 +52,6 @@ set(SOURCES
     "SwapChain.cpp" 
     "meshes/Mesh.h" 
     "meshes/Mesh.cpp" 
-    "Scene.h" 
-    "Scene.cpp" 
     "Camera.h" 
     "Camera.cpp" 
     "texture/Texture.h" 
@@ -62,9 +60,17 @@ set(SOURCES
     "texture/Material.cpp" 
     "texture/MaterialManager.h" 
     "texture/MaterialManager.cpp"
-    "PhysicsEngine/PhysicsEngine.h" 
-    "PhysicsEngine/PhysicsEngine.cpp"
- )
+    "physicsEngine/PhysicsEngine.h" 
+    "physicsEngine/PhysicsEngine.cpp"
+    "scenes/SceneBase.h" 
+     
+    "scenes/Scene2D.h" 
+     
+    "scenes/Scene3D_PBR.h" 
+    
+    "scenes/Scene3D.h" 
+     
+)
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES})
 add_dependencies(${PROJECT_NAME} Shaders)

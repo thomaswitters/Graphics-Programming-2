@@ -59,12 +59,12 @@ struct UniformBufferObject3D_PBR {
     glm::vec3 lightDirection;
 };
 
-struct MeshPushConstantsPBR {
+struct PushConstantsPBR {
     glm::mat4 model;
     int renderMode;
 };
 
-struct MeshPushConstants {
+struct PushConstants {
     glm::mat4 model;
 };
 
