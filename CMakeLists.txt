@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Project Name
 project(VulkanLab01)
 
-# Use C++17
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -12,7 +10,7 @@ include(FetchContent)
 FetchContent_Declare(
   glfw
   GIT_REPOSITORY https://github.com/glfw/glfw.git
-  GIT_TAG        3.3.8 # Specify the version you need
+  GIT_TAG        3.3.8
 )
 
 FetchContent_MakeAvailable(glfw)
@@ -25,10 +23,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(bullet)
 
-# Find the required packages
 find_package(Vulkan REQUIRED)
 
-# Include Directories
 include_directories(${Vulkan_INCLUDE_DIRS})
 include_directories(${bullet_SOURCE_DIR}/src)
 

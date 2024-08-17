@@ -2,13 +2,13 @@
 #include "vulkan/vulkan_core.h"
 #include <vector>
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp> // For glm::quat
-#include <glm/gtc/matrix_transform.hpp> // For glm::translate, etc.
-#include <glm/gtc/type_ptr.hpp> // For glm::value_ptr, if needed
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "Vertex.h"
 #include "DescriptorPool.h"
-#include "DataBuffer.h"
-#include "CommandBuffer.h"
+#include "buffers/DataBuffer.h"
+#include "buffers/CommandBuffer.h"
 #include "texture/Material.h"
 #include <PhysicsEngine/PhysicsEngine.h>
 
@@ -25,7 +25,7 @@ template <typename VertexType>
 class Mesh {
 public:
     void initialize(const VkDevice& device, const VkPhysicalDevice& physDevice, QueueFamilyIndices queueFamily, VkQueue graphicsQueue, const std::vector<VertexType> vertices, std::vector<uint32_t> indices);
-    void draw(CommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const;
+    void draw(CommandBuffer commandBuffer) const;
     void cleanUp(const VkDevice& device);
 
     const std::vector<VertexType>& getVertices() const { return m_Vertices; }
@@ -34,7 +34,7 @@ public:
     void setVertices(const std::vector<VertexType>& vertices) { m_Vertices = vertices; }
     void setIndices(const std::vector<uint32_t>& indices) { m_Indices = indices; }
 
-    static  Mesh<Vertex2D> CreateRectangle(glm::vec2 center, float width, float height, const glm::vec3& color);
+    static Mesh<Vertex2D> CreateRectangle(glm::vec2 center, float width, float height, const glm::vec3& color);
     static Mesh<Vertex2D> CreateRectangle(glm::vec2 center, float width, float height, const std::vector<glm::vec3>& colors);
 
     static Mesh<Vertex2D> CreateEllipse(glm::vec2 center, float width, float height, const glm::vec3& color, int nrOfVertexes);
@@ -46,11 +46,11 @@ public:
     void applyImpulseOnce(const btVector3& impulse);
 
     glm::mat4 m_ModelMatrix = glm::mat4(1.0f);
-    std::shared_ptr<Material> m_Material{};
-    std::unique_ptr<btRigidBody> m_PhysicsBody = nullptr;
+    std::shared_ptr<Material> m_pMaterial{};
+    std::unique_ptr<btRigidBody> m_pPhysicsBody = nullptr;
 private:
-    std::unique_ptr<DataBuffer> m_VertexBuffer{};
-    std::unique_ptr<DataBuffer> m_IndexBuffer{};
+    std::unique_ptr<DataBuffer> m_pVertexBuffer{};
+    std::unique_ptr<DataBuffer> m_pIndexBuffer{};
 
     std::vector<VertexType> m_Vertices{};
     std::vector<uint32_t> m_Indices{};
@@ -58,7 +58,6 @@ private:
     float m_BoundingBoxWidth{};
     float m_BoundingBoxHeight{};
     float m_BoundingBoxDepth{};
-
     bool m_ImpulseApplied = false;
 };
 
@@ -82,7 +81,7 @@ void Mesh<VertexType>::initialize(const VkDevice& device, const VkPhysicalDevice
 
     stagingVertexBuffer->upload(vertexBufferSize, m_Vertices.data());
 
-    m_VertexBuffer = std::make_unique<DataBuffer>(
+    m_pVertexBuffer = std::make_unique<DataBuffer>(
         physDevice,
         device,
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -91,8 +90,8 @@ void Mesh<VertexType>::initialize(const VkDevice& device, const VkPhysicalDevice
     );
 
 
-    stagingVertexBuffer->copyBuffer(queueFamily, *m_VertexBuffer, graphicsQueue);
-    stagingVertexBuffer->destroy(device);
+    stagingVertexBuffer->copyBuffer(queueFamily, *m_pVertexBuffer, graphicsQueue);
+    stagingVertexBuffer->cleanup(device);
 
     auto stagingIndexBuffer = std::make_unique<DataBuffer>(
         physDevice,
@@ -105,7 +104,7 @@ void Mesh<VertexType>::initialize(const VkDevice& device, const VkPhysicalDevice
 
     stagingIndexBuffer->upload(indexBufferSize, m_Indices.data());
 
-    m_IndexBuffer = std::make_unique<DataBuffer>(
+    m_pIndexBuffer = std::make_unique<DataBuffer>(
         physDevice,
         device,
         VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -113,23 +112,23 @@ void Mesh<VertexType>::initialize(const VkDevice& device, const VkPhysicalDevice
         indexBufferSize
     );
 
-    stagingIndexBuffer->copyBuffer(queueFamily, *m_IndexBuffer, graphicsQueue);
-    stagingIndexBuffer->destroy(device);
+    stagingIndexBuffer->copyBuffer(queueFamily, *m_pIndexBuffer, graphicsQueue);
+    stagingIndexBuffer->cleanup(device);
 }
 
 template <typename VertexType>
-void Mesh<VertexType>::draw(CommandBuffer commandBuffer, VkPipelineLayout pipelineLayout) const {
-    VkBuffer vertexBuffers[] = { m_VertexBuffer->getVkBuffer() };
+void Mesh<VertexType>::draw(CommandBuffer commandBuffer) const {
+    VkBuffer vertexBuffers[] = { m_pVertexBuffer->getVkBuffer() };
     VkDeviceSize offsets[] = { 0 };
     vkCmdBindVertexBuffers(commandBuffer.getVkCommandBuffer(), 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(commandBuffer.getVkCommandBuffer(), m_IndexBuffer->getVkBuffer(), 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindIndexBuffer(commandBuffer.getVkCommandBuffer(), m_pIndexBuffer->getVkBuffer(), 0, VK_INDEX_TYPE_UINT32);
     vkCmdDrawIndexed(commandBuffer.getVkCommandBuffer(), static_cast<uint32_t>(m_Indices.size()), 1, 0, 0, 0);
 }
 
 template <typename VertexType>
 void Mesh<VertexType>::cleanUp(const VkDevice& device) {
-    m_VertexBuffer->destroy(device);
-    m_IndexBuffer->destroy(device);
+    m_pVertexBuffer->cleanup(device);
+    m_pIndexBuffer->cleanup(device);
 }
 
 template <typename VertexType>
@@ -155,13 +154,13 @@ void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mas
 
     auto motionState = std::make_unique<btDefaultMotionState>(btTransform(btQuaternion(0, 0, 0, 1), btVector3(0, 0, 0)));
     btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState.get(), shape.get(), inertia);
-    m_PhysicsBody = std::make_unique<btRigidBody>(rbInfo);
+    m_pPhysicsBody = std::make_unique<btRigidBody>(rbInfo);
 
-    m_PhysicsBody->setRestitution(restitution);
+    m_pPhysicsBody->setRestitution(restitution);
 
-    physicsEngine.getDynamicsWorld()->addRigidBody(m_PhysicsBody.get());
+    physicsEngine.getDynamicsWorld()->addRigidBody(m_pPhysicsBody.get());
     if (!useGravity) {
-        m_PhysicsBody->setGravity(btVector3(0, 0, 0));
+        m_pPhysicsBody->setGravity(btVector3(0, 0, 0));
     }
 
     shape.release();
@@ -170,17 +169,17 @@ void Mesh<VertexType>::createPhysicsBody(PhysicsEngine& physicsEngine, float mas
 
 template <typename VertexType>
 void Mesh<VertexType>::applyImpulseOnce(const btVector3& impulse) {
-    if (m_PhysicsBody && !m_ImpulseApplied) {
-        m_PhysicsBody->applyCentralImpulse(impulse);
+    if (m_pPhysicsBody && !m_ImpulseApplied) {
+        m_pPhysicsBody->applyCentralImpulse(impulse);
         m_ImpulseApplied = true;
     }
 }
 
 template <typename VertexType>
 void Mesh<VertexType>::updatePhysics(float deltaTime) {
-    if (m_PhysicsBody) {
+    if (m_pPhysicsBody) {
         btTransform trans;
-        m_PhysicsBody->getMotionState()->getWorldTransform(trans);
+        m_pPhysicsBody->getMotionState()->getWorldTransform(trans);
 
         glm::vec3 scale = glm::vec3(
             glm::length(glm::vec3(m_ModelMatrix[0])),

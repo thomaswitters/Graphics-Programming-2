@@ -1,16 +1,17 @@
 #include "MaterialManager.h"
+#include <stdexcept>
 
-void MaterialManager::createMaterialPool(const VkDevice& device, int maxMaterialCount, int maxTexturesPerMaterial)
-{
+void MaterialManager::createMaterialPool(const VkDevice& device, int maxMaterialCount, int maxTexturesPerMaterial) {
     if (m_DescriptorPool != VK_NULL_HANDLE && m_DescriptorSetLayout != VK_NULL_HANDLE) {
-        return; // Pool and layout already created
+        return;
     }
 
     std::vector<VkDescriptorSetLayoutBinding> bindings;
-    bindings.reserve(maxTexturesPerMaterial); // Reserve memory upfront
-    for (size_t textureIndex = 0; textureIndex < maxTexturesPerMaterial; ++textureIndex) {
+    bindings.reserve(maxTexturesPerMaterial);
+
+    for (size_t i = 0; i < maxTexturesPerMaterial; ++i) {
         VkDescriptorSetLayoutBinding binding{};
-        binding.binding = static_cast<uint32_t>(textureIndex);
+        binding.binding = static_cast<uint32_t>(i);
         binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         binding.descriptorCount = 1;
         binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -37,23 +38,23 @@ void MaterialManager::createMaterialPool(const VkDevice& device, int maxMaterial
     poolInfo.pPoolSizes = &poolSize;
 
     if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor pool!");
+        throw std::runtime_error("Failed to create descriptor pool!");
     }
 }
 
 std::shared_ptr<Material> MaterialManager::createMaterial(const VkDevice& device, const std::vector<std::shared_ptr<Texture>>& textures) {
     auto material = std::make_shared<Material>(device, textures, m_DescriptorSetLayout, m_DescriptorPool);
-    m_Materials.push_back(material);
+    m_pMaterials.push_back(material);
     return material;
 }
 
 void MaterialManager::cleanup(const VkDevice& device) {
-    for (const auto& material : m_Materials) {
+    for (const auto& material : m_pMaterials) {
         if (material) {
             material->cleanup(device);
         }
     }
-    m_Materials.clear();
+    m_pMaterials.clear();
 
     if (m_DescriptorPool != VK_NULL_HANDLE) {
         vkDestroyDescriptorPool(device, m_DescriptorPool, nullptr);

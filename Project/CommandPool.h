@@ -1,6 +1,6 @@
 #pragma once
 #include "vulkan/vulkan_core.h"
-#include "CommandBuffer.h"
+#include "buffers/CommandBuffer.h"
 #include "vulkanbase/VulkanUtil.h"
 
 class CommandPool

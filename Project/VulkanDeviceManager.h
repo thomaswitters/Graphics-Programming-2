@@ -30,6 +30,6 @@ private:
     bool isDeviceSuitable(const VkPhysicalDevice& device, const VkSurfaceKHR& surface);
 
     VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
-    VkQueue m_GraphicsQueue;
-    VkQueue m_PresentQueue;
+    VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
+    VkQueue m_PresentQueue = VK_NULL_HANDLE;
 };

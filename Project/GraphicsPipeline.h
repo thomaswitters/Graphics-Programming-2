@@ -3,8 +3,8 @@
 #include <string>
 #include "MachineShader.h"
 #include "SwapChain.h"
-#include "CommandBuffer.h"
-#include "DataBuffer.h"
+#include "buffers/CommandBuffer.h"
+#include "buffers/DataBuffer.h"
 #include <chrono>                  
 #include <cstring>                 
 #include <glm/glm.hpp>            
@@ -44,8 +44,8 @@ private:
     MachineShader m_MachineShader;
 
     VkDescriptorSetLayout m_DescriptorSetlayout{};
-    std::vector<std::unique_ptr<DataBuffer>> m_UniformBuffers;
-    std::unique_ptr<DescriptorPool> m_DescriptorPool;
+    std::vector<std::unique_ptr<DataBuffer>> m_pUniformBuffers;
+    std::unique_ptr<DescriptorPool> m_pDescriptorPool;
 };
 
 template<typename VertexType>
@@ -164,11 +164,11 @@ void GraphicsPipeline::createGraphicsPipeline(const VkDevice& device, SwapChain 
         throw std::runtime_error("failed to create graphics pipeline!");
     }
 
-    m_DescriptorPool = std::make_unique<DescriptorPool>(device,
+    m_pDescriptorPool = std::make_unique<DescriptorPool>(device,
         swapChain.getImageCount(),
         std::vector{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER },
         m_DescriptorSetlayout,
-        m_UniformBuffers);
+        m_pUniformBuffers);
 
     m_MachineShader.destroyShaderModules(device);
 }

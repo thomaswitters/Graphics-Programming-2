@@ -1,10 +1,8 @@
 #pragma once
-#include "vulkan/vulkan.h"
+#include <vulkan/vulkan.h>
 #include <vector>
-#include "VulkanDeviceManager.h"
-#include <limits>
-#include <algorithm>
 #include <GLFW/glfw3.h>
+#include "VulkanDeviceManager.h"
 #include "vulkanbase/VulkanUtil.h"
 
 class SwapChain {
@@ -33,13 +31,13 @@ private:
     VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
     VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window);
 
-    VkSwapchainKHR m_SwapChain;
+    VkSwapchainKHR m_SwapChain{ VK_NULL_HANDLE };
     std::vector<VkImage> m_SwapChainImages;
     std::vector<VkImageView> m_SwapChainImageViews;
-    VkImageView m_DepthImageView;
-    VkFormat m_SwapChainImageFormat;
-    VkExtent2D m_SwapChainExtent;
+    VkImageView m_DepthImageView{ VK_NULL_HANDLE };
+    VkFormat m_SwapChainImageFormat{ VK_FORMAT_UNDEFINED };
+    VkExtent2D m_SwapChainExtent{};
 
-    VkImage m_DepthImage;
-    VkDeviceMemory m_DepthImageMemory;
+    VkImage m_DepthImage{ VK_NULL_HANDLE };
+    VkDeviceMemory m_DepthImageMemory{ VK_NULL_HANDLE };
 };

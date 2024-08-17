@@ -28,23 +28,17 @@ file(COPY models DESTINATION .)
 set(SOURCES
     "main.cpp"
     "vulkanbase/VulkanBase.h" 
+    "vulkanbase/VulkanBase.cpp" 
     "vulkanbase/VulkanUtil.h"
     "vulkanbase/VulkanUtil.cpp"
-    # Add other source files here
     "stb/stb_image.h"
-    "labwork/Week01.cpp"
-    "labwork/Week02.cpp" 
-    "labwork/Week03.cpp" 
-    "labwork/Week04.cpp" 
-    "labwork/Week05.cpp"
-    "labwork/Week06.cpp"
     "MachineShader.h" 
     "MachineShader.cpp"    
-    "CommandBuffer.h" 
-    "CommandBuffer.cpp"       
+    "buffers/CommandBuffer.h" 
+    "buffers/CommandBuffer.cpp"       
     "loadObjFile.h" 
-    "DataBuffer.h" 
-    "DataBuffer.cpp" 
+    "buffers/DataBuffer.h" 
+    "buffers/DataBuffer.cpp" 
     "CommandPool.h" 
     "CommandPool.cpp"     
     "Vertex.h"           
@@ -70,12 +64,10 @@ set(SOURCES
     "texture/MaterialManager.cpp"
     "PhysicsEngine/PhysicsEngine.h" 
     "PhysicsEngine/PhysicsEngine.cpp"
-)
+ )
 
-# Create the executable
 add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES})
 add_dependencies(${PROJECT_NAME} Shaders)
 
-# Link libraries
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Vulkan_LIBRARIES} glfw BulletDynamics BulletCollision LinearMath)

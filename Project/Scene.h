@@ -3,7 +3,7 @@
 #include "vulkan/vulkan.h"
 #include <glm/glm.hpp>
 #include <vulkanbase/VulkanUtil.h>
-#include <CommandBuffer.h>
+#include <buffers/CommandBuffer.h>
 #include <meshes/Mesh.h>
 #include <Camera.h>
 #include <GraphicsPipeline.h>
@@ -15,6 +15,7 @@ template <typename VertexType>
 class Scene {
 public:
     Scene() = default;
+    ~Scene() = default;
 
     void create2DScene(const VkDevice& device, const VkPhysicalDevice& physDevice, const VkCommandPool& commandPool, QueueFamilyIndices queueFamily, const VkQueue& graphicsQueue);
     void create3DScene(const VkDevice& device, const VkPhysicalDevice& physDevice, const VkCommandPool& commandPool, QueueFamilyIndices queueFamily, const VkQueue& graphicsQueue);
@@ -34,6 +35,7 @@ private:
     float m_RotationAngle = 0.0f;
     PhysicsEngine physicsEngine;
 };
+
 template <typename VertexType>
 void Scene<VertexType>::update3D_PBR(float deltaTime) {    
     constexpr float maxSimulationTimestep = 1.0f / 60.0f;
@@ -69,13 +71,6 @@ void Scene<VertexType>::update3D_PBR(float deltaTime) {
 
     constexpr float rotationSpeed = glm::radians(90.0f);
     m_RotationAngle += rotationSpeed * deltaTime;
-    
-    if (!m_Meshes.empty()) {
-        m_Meshes[2].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-8.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
-    }
-    if (!m_Meshes.empty()) {
-        m_Meshes[1].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(1.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
-    }
 
     if (m_Meshes.size() > 1) {
         float radiusX = 25.0f;
@@ -94,13 +89,21 @@ void Scene<VertexType>::update3D_PBR(float deltaTime) {
         float verticalSpeed = radiusY * cos(time * 2);
         float tiltAngle = atan2(verticalSpeed, sqrt(x * x + z * z));
 
-        m_Meshes[0].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-7.5f, 0.5f, 0))
+        m_Meshes[0].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-7.5f, 3.5f, 0))
             * glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z))
             * glm::rotate(glm::mat4(1.0f), forwardAngle, glm::vec3(0.0f, -1.0f, 0.0f))
             * glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, -1.0f, 0.0f))
             * glm::rotate(glm::mat4(1.0f), tiltAngle, glm::vec3(0.0f, 0.0f, 1.0f))
             * glm::rotate(glm::mat4(1.0f), m_RotationAngle * 1.7f, glm::vec3(1.0f, 0.0f, 0.0f))
             * glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.2f, 0.2f));
+    }
+
+    if (!m_Meshes.empty()) {
+        m_Meshes[1].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(1.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
+    }
+
+    if (!m_Meshes.empty()) {
+        m_Meshes[2].m_ModelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-8.5f, 0.5f, 0.0f)) * glm::rotate(glm::mat4(1.0f), m_RotationAngle, glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
     }
 }
 
@@ -274,22 +277,10 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         vehicle.setIndices(vehicleIndices);
         vehicle.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { 0.5f, 0.5f, 0 }) *
             glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
-        vehicle.m_Material = myMaterial;
+        vehicle.m_pMaterial = myMaterial;
 
         addMesh(vehicle, device, physDevice, queueFamily, graphicsQueue);
     }
-
-    /*Mesh<VertexType> diorama;
-    std::vector<VertexType> dioramaVertices;
-    std::vector<uint32_t> dioramaIndices;
-
-    if (ObjLoader::loadObjFile("models/diorama.obj", dioramaVertices, dioramaIndices)) {
-        diorama.setVertices(dioramaVertices);
-        diorama.setIndices(dioramaIndices);
-        diorama.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { 4.0f, 0.0f, 25.0f }) * rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 1.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), { 0.2f, 0.2f, 0.2f });
-        diorama.m_Material = mydefaultTextureMaterial;
-        addMesh(diorama, device, physDevice, queueFamily, graphicsQueue);
-    }*/
 
     Mesh<VertexType> square;
     std::vector<VertexType> squareVertices;
@@ -299,7 +290,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         square.setVertices(squareVertices);
         square.setIndices(squareIndices);
         square.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -5.5f, 0.5, 0 }) * rotate(glm::mat4(1.0f), glm::pi<float>(), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(0.2f, 0.2f, 0.2f));
-        square.m_Material = myBrickMaterial;
+        square.m_pMaterial = myBrickMaterial;
 
         addMesh(square, device, physDevice, queueFamily, graphicsQueue);
     }
@@ -314,7 +305,7 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         sphere2.setVertices(sphere2Vertices);
         sphere2.setIndices(sphere2Indices);
         sphere2.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -8.5f, 0.5f, 0 });
-        sphere2.m_Material = myDirtTextureMaterial;
+        sphere2.m_pMaterial = myDirtTextureMaterial;
 
         addMesh(sphere2, device, physDevice, queueFamily, graphicsQueue);
     }
@@ -336,15 +327,15 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
             sphere.setVertices(sphereVertices);
             sphere.setIndices(sphereIndices);
 
-            btVector3 initialPosition(-10.0f, 20.3f, 7.0f);
+            btVector3 initialPosition(-10.0f, 30.3f, 7.0f);
             btQuaternion initialRotation(0, 0, 0, 1);
             btTransform initialTransform(initialRotation, initialPosition);
 
             sphere.createPhysicsBody(physicsEngine, 1.f, glm::vec3(2.0f, 2.0f, 2.0f), ShapeType::Sphere, true, 0.9f);
 
-            sphere.m_PhysicsBody->setWorldTransform(initialTransform);
+            sphere.m_pPhysicsBody->setWorldTransform(initialTransform);
             sphere.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
-            sphere.m_Material = mydefaultTextureMaterial;
+            sphere.m_pMaterial = mydefaultTextureMaterial;
 
             addMesh(sphere, device, physDevice, queueFamily, graphicsQueue);
         }
@@ -365,15 +356,15 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
         square2.setVertices(square2Vertices);
         square2.setIndices(square2Indices);
 
-        btVector3 initialPosition(-10.0f, -0.5f, 7.0f);
+        btVector3 initialPosition(-10.0f, 5.0f, 7.0f);
         btQuaternion initialRotation(0, 0, 0, 1);
         btTransform initialTransform(initialRotation, initialPosition);
 
         square2.createPhysicsBody(physicsEngine, 1000.f, glm::vec3(5.0f, 0.01f, 5.0f), ShapeType::Box, false, 1.0f);
-        square2.m_PhysicsBody->setWorldTransform(initialTransform);
+        square2.m_pPhysicsBody->setWorldTransform(initialTransform);
 
         square2.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 5.0f, 5.0f, 5.0f });
-        square2.m_Material = mydefaultTextureMaterial;
+        square2.m_pMaterial = mydefaultTextureMaterial;
 
         addMesh(square2, device, physDevice, queueFamily, graphicsQueue);
     }
@@ -396,9 +387,9 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
 
             sphere.createPhysicsBody(physicsEngine, 10.f, glm::vec3(2.0f, 2.0f, 2.0f), ShapeType::Sphere, false);
 
-            sphere.m_PhysicsBody->setWorldTransform(initialTransform);
+            sphere.m_pPhysicsBody->setWorldTransform(initialTransform);
             sphere.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { 1.0f, 1.0f, 1.0f });
-            sphere.m_Material = myDirtTextureMaterial;
+            sphere.m_pMaterial = myDirtTextureMaterial;
 
             addMesh(sphere, device, physDevice, queueFamily, graphicsQueue);
         }
@@ -427,10 +418,10 @@ void Scene<VertexType>::create3DScene_PBR(const VkDevice& device, const VkPhysic
                         btTransform initialTransform(initialRotation, initialPosition);
 
                         smallCube.createPhysicsBody(physicsEngine, 0.7f, glm::vec3(cubeSize * 9.1f, cubeSize * 9.1f, cubeSize * 9.1f), ShapeType::Box, false);
-                        smallCube.m_PhysicsBody->setWorldTransform(initialTransform);
+                        smallCube.m_pPhysicsBody->setWorldTransform(initialTransform);
 
                         smallCube.m_ModelMatrix = glm::scale(glm::mat4(1.0f), { cubeSize, cubeSize, cubeSize });
-                        smallCube.m_Material = myBrickMaterial;
+                        smallCube.m_pMaterial = myBrickMaterial;
 
                         addMesh(smallCube, device, physDevice, queueFamily, graphicsQueue);
                     }
@@ -449,7 +440,7 @@ void Scene<VertexType>::addMesh(Mesh<VertexType>& mesh, const VkDevice& device, 
 template <typename VertexType>
 void Scene<VertexType>::draw2D(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex) {
     UniformBufferObject2D ubo2D{};
-    ubo2D.proj = camera.GetOrthoProjectionMatrix();
+    ubo2D.proj = camera.getOrthoProjectionMatrix();
 
     graphicsPipeline.bind(commandBuffer.getVkCommandBuffer(), swapChain, imageIndex);
     graphicsPipeline.updateUBO(imageIndex, &ubo2D, sizeof(ubo2D));
@@ -461,15 +452,15 @@ void Scene<VertexType>::draw2D(Camera& camera, CommandBuffer& commandBuffer, Gra
 
         graphicsPipeline.updatePushConstrant(commandBuffer.getVkCommandBuffer(), &meshPushConstant, sizeof(meshPushConstant));
 
-        mesh.draw(commandBuffer, graphicsPipeline.getPipelineLayout());
+        mesh.draw(commandBuffer);
     }
 }
 
 template <typename VertexType>
 void Scene<VertexType>::draw3D(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex) {
     UniformBufferObject3D ubo3D{};
-    ubo3D.viewProjection = camera.GetViewProjection(0.1f, 100.f);
-    ubo3D.viewPosition = glm::vec4(camera.origin, 1.0f);
+    ubo3D.viewProjection = camera.getViewProjection(0.1f, 200.f);
+    ubo3D.viewPosition = glm::vec4(camera.getOrigin(), 1.0f);
 
     graphicsPipeline.bind(commandBuffer.getVkCommandBuffer(), swapChain, imageIndex);
     graphicsPipeline.updateUBO(imageIndex, &ubo3D, sizeof(ubo3D));
@@ -480,15 +471,15 @@ void Scene<VertexType>::draw3D(Camera& camera, CommandBuffer& commandBuffer, Gra
 
         graphicsPipeline.updatePushConstrant(commandBuffer.getVkCommandBuffer(), &meshPushConstant, sizeof(meshPushConstant));
 
-        mesh.draw(commandBuffer, graphicsPipeline.getPipelineLayout());
+        mesh.draw(commandBuffer);
     }
 }
 
 template <typename VertexType>
 void Scene<VertexType>::draw3D_PBR(Camera& camera, CommandBuffer& commandBuffer, GraphicsPipeline& graphicsPipeline, SwapChain& swapChain, int imageIndex) {
     UniformBufferObject3D ubo3D{};
-    ubo3D.viewProjection = camera.GetViewProjection(0.1f, 100.f);
-    ubo3D.viewPosition = glm::vec4(camera.origin, 1.0f);
+    ubo3D.viewProjection = camera.getViewProjection(0.1f, 200.f);
+    ubo3D.viewPosition = glm::vec4(camera.getOrigin(), 1.0f);
 
     graphicsPipeline.bind(commandBuffer.getVkCommandBuffer(), swapChain, imageIndex);
     graphicsPipeline.updateUBO(imageIndex, &ubo3D, sizeof(ubo3D));
@@ -499,21 +490,21 @@ void Scene<VertexType>::draw3D_PBR(Camera& camera, CommandBuffer& commandBuffer,
 
         graphicsPipeline.updatePushConstrant(commandBuffer.getVkCommandBuffer(), &meshPushConstant, sizeof(meshPushConstant));
 
-        if (mesh.m_Material != nullptr)
+        if (mesh.m_pMaterial != nullptr)
         {
-            graphicsPipeline.updateMaterial(commandBuffer.getVkCommandBuffer(), *mesh.m_Material);
+            graphicsPipeline.updateMaterial(commandBuffer.getVkCommandBuffer(), *mesh.m_pMaterial);
         }
 
-        mesh.draw(commandBuffer, graphicsPipeline.getPipelineLayout());
+        mesh.draw(commandBuffer);
     }
 }
 
 template <typename VertexType>
 void Scene<VertexType>::cleanUp(const VkDevice& device) {
     for (auto& mesh : m_Meshes) {
-        if (mesh.m_Material != nullptr)
+        if (mesh.m_pMaterial != nullptr)
         {
-            mesh.m_Material->cleanup(device);
+            mesh.m_pMaterial->cleanup(device);
         }
         mesh.cleanUp(device);
     }

@@ -1,4 +1,6 @@
 #include "SwapChain.h"
+#include <stdexcept>
+#include <algorithm>
 
 void SwapChain::initialize(const VkDevice& device, const VkSurfaceKHR& surface, GLFWwindow* window, const VulkanDeviceManager& deviceManager) {
     createSwapChain(device, surface, window, deviceManager);
@@ -101,7 +103,7 @@ void SwapChain::createImageViews(const VkDevice& device) {
 }
 
 void SwapChain::createDepthResources(const VkDevice& device, const VulkanDeviceManager& deviceManager) {
-    VkFormat depthFormat = FindDepthFormat(deviceManager.getPhysicalDevice());
+    VkFormat depthFormat = findDepthFormat(deviceManager.getPhysicalDevice());
 
     VkImageCreateInfo depthImageInfo{};
     depthImageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;

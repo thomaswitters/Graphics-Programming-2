@@ -1,13 +1,9 @@
 #include "Material.h"
-
-#include <vulkan/vk_enum_string_helper.h>
-
 #include <stdexcept>
-#include <iostream>
 
-Material::Material(const VkDevice& device, const std::vector<std::shared_ptr<Texture>>& textures, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool) :
-    m_Texture(textures), m_DescriptorSetLayout(descriptorSetLayout), m_DescriptorPool(descriptorPool)
-{
+Material::Material(const VkDevice& device, const std::vector<std::shared_ptr<Texture>>& textures, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool)
+    : m_pTextures(textures), m_DescriptorSetLayout(descriptorSetLayout), m_DescriptorPool(descriptorPool) {
+
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = m_DescriptorPool;
@@ -19,15 +15,15 @@ Material::Material(const VkDevice& device, const std::vector<std::shared_ptr<Tex
     }
 
     std::vector<VkWriteDescriptorSet> descriptorWrites;
-    descriptorWrites.reserve(m_Texture.size());
+    descriptorWrites.reserve(m_pTextures.size());
 
-    for (size_t textureIndex = 0; textureIndex < m_Texture.size(); ++textureIndex) {
-        const VkDescriptorImageInfo& descriptorInfo = m_Texture[textureIndex]->getDescriptorInfo();
+    for (size_t i = 0; i < m_pTextures.size(); ++i) {
+        const VkDescriptorImageInfo& descriptorInfo = m_pTextures[i]->getDescriptorInfo();
 
         VkWriteDescriptorSet writeDescriptorSet{};
         writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         writeDescriptorSet.dstSet = m_DescriptorSet;
-        writeDescriptorSet.dstBinding = static_cast<uint32_t>(textureIndex);
+        writeDescriptorSet.dstBinding = static_cast<uint32_t>(i);
         writeDescriptorSet.dstArrayElement = 0;
         writeDescriptorSet.descriptorCount = 1;
         writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -39,13 +35,10 @@ Material::Material(const VkDevice& device, const std::vector<std::shared_ptr<Tex
     vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 }
 
-void Material::cleanup(const VkDevice& device)
-{
-    for (const auto& texture : m_Texture)
-    {
-        if (texture != nullptr)
-        {
-            texture->cleanup(device);
+void Material::cleanup(const VkDevice& device) {
+    for (const auto& texture : m_pTextures) {
+        if (texture) {
+            texture->cleanup();
         }
     }
 }

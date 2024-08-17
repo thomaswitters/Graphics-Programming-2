@@ -15,12 +15,12 @@ void GraphicsPipeline::cleanup(const VkDevice& device) {
     vkDestroyPipeline(device, m_GraphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, m_PipelineLayout, nullptr);
 
-    for (auto& buffer : m_UniformBuffers)
+    for (auto& buffer : m_pUniformBuffers)
     {
-        buffer->destroy(device);
+        buffer->cleanup(device);
     }
 
-    m_DescriptorPool->cleanup(device);
+    m_pDescriptorPool->cleanup(device);
     vkDestroyDescriptorSetLayout(device, m_DescriptorSetlayout, nullptr);
 }
 
@@ -41,7 +41,7 @@ void GraphicsPipeline::bind(VkCommandBuffer commandBuffer, SwapChain swapChain, 
     scissor.extent = swapChain.getSwapChainExtent();
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, m_DescriptorPool->getDescriptorSet(imageIndex), 0, nullptr);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_PipelineLayout, 0, 1, m_pDescriptorPool->getDescriptorSet(imageIndex), 0, nullptr);
 }
 
 void GraphicsPipeline::createDescriptorSetLayout(const VkDevice& device)
@@ -68,22 +68,22 @@ void GraphicsPipeline::createDescriptorSetLayout(const VkDevice& device)
 void GraphicsPipeline::createUniformbuffers(const VkDevice& device, const VkPhysicalDevice& physDevice, size_t maxFramesCount, VkDeviceSize uboBufferSize)
 {
     void* data = nullptr;
-    m_UniformBuffers.reserve(maxFramesCount);
+    m_pUniformBuffers.reserve(maxFramesCount);
 
     for (size_t i = 0; i < maxFramesCount; i++)
     {
-        m_UniformBuffers.emplace_back(
+        m_pUniformBuffers.emplace_back(
             std::make_unique<DataBuffer>(physDevice, device,
                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uboBufferSize));
 
-        m_UniformBuffers[i]->map(uboBufferSize);
+        m_pUniformBuffers[i]->map(uboBufferSize);
     }
 }
 
 void GraphicsPipeline::updateUBO(int imageIndex, void* uboData, VkDeviceSize uboSize)
 {
-    m_UniformBuffers[imageIndex]->upload(uboSize, uboData);
+    m_pUniformBuffers[imageIndex]->upload(uboSize, uboData);
 }
 
 void GraphicsPipeline::updatePushConstrant(VkCommandBuffer commandBuffer, void* pushConstrants, uint32_t pushConstrantSize)

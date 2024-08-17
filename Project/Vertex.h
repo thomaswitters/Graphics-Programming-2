@@ -35,8 +35,6 @@ struct Vertex2D {
     }
 };
 
-
-
 struct Vertex3D {
     glm::vec3 pos;
     glm::vec3 color;

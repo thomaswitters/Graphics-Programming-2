@@ -4,12 +4,13 @@
 #include <stdexcept>
 #include <vector>
 #include <memory>
-#include <DataBuffer.h>
+#include <buffers/DataBuffer.h>
 
 class DescriptorPool
 {
 public:
     DescriptorPool(const VkDevice& device, size_t frameCount, const std::vector<VkDescriptorType>& types, VkDescriptorSetLayout descriptorSetLayout, const std::vector<std::unique_ptr<DataBuffer>>& buffers);
+    ~DescriptorPool() = default;
 
     void cleanup(const VkDevice& device);
 
