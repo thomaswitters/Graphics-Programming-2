@@ -25,7 +25,7 @@ void Scene3D_PBR<VertexType>::createScene(const VkDevice& device, const VkPhysic
 
     auto myBrickMaterial = materialManager.createMaterial(device, { brickTexture, brickTexture2, brickTexture3, brickTexture4 });
 
-    auto defaultTexture = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/uv_grid/uv_grid_3.png");
+    auto defaultTexture = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/uv_grid/uv_grid.png");
     auto defaultTexture2 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/uv_grid/defaultNormal.png");
     auto defaultTexture3 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/uv_grid/defaultBlack.png");
     auto defaultTexture4 = std::make_shared<Texture>(device, physDevice, commandPool, graphicsQueue, "models/uv_grid/uv_grid.png");

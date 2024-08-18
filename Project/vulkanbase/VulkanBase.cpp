@@ -389,7 +389,7 @@ void VulkanBase::beginRenderPass(const VkExtent2D& swapChainExtent, uint32_t ima
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent = swapChainExtent;
 
-    VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+    VkClearValue clearColor = { {{0.f, 0.f, 0.5f, 1.0f}} };
     VkClearValue clearDepth = { {1.0f, 0} };
     renderPassInfo.clearValueCount = 2;
     VkClearValue clearValues[] = { clearColor, clearDepth };

@@ -8,8 +8,7 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
     vec3 lightDirection;
 } ubo;
 
-layout(push_constant) uniform PushConstants
-{
+layout(push_constant) uniform PushConstants {
     mat4 model;
     int renderMode;
 } push;
@@ -28,7 +27,7 @@ layout(location = 4) in vec2 inUV;
 layout(location = 0) out vec4 outColor;
 
 vec3 lightColor = vec3(1.0);
-vec3 ambientLight = vec3(0.05);
+vec3 ambientLight = vec3(0.1);
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
@@ -36,7 +35,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
 
 float geometrySchlickGGX(float NdotV, float roughness) {
     float a = roughness * roughness;
-    float k = a / 2.0;
+    float k = (a * a) / 2.0;
     return NdotV / (NdotV * (1.0 - k) + k);
 }
 
@@ -72,8 +71,8 @@ void main() {
     vec3 specularColor = texture(specularSample, inUV).rgb;
     float roughness = texture(roughnessSample, inUV).r;
 
+    // Normal mapping with TBN transformation
     vec3 normal = normalize(normalMap * 2.0 - 1.0);
-
     vec3 T = normalize(inTangent - inNormal * dot(inNormal, inTangent));
     vec3 B = normalize(cross(inNormal, T));
     mat3 TBN = mat3(T, B, inNormal);
@@ -82,19 +81,21 @@ void main() {
     vec3 viewDir = normalize(ubo.viewPosition.xyz - inWorldPosition);
     vec3 lightDir = normalize(ubo.lightDirection);
 
-    vec3 F0 = mix(vec3(0.04), specularColor, specularColor);
+    // Using the original specular approach with F0 directly from the specular texture
+    vec3 F0 = specularColor;
 
     vec3 specular = cookTorranceBRDF(normal, viewDir, lightDir, F0, roughness);
 
     float NdotL = max(dot(normal, lightDir), 0.0);
     vec3 diffuseLighting = diffuse * lightColor * NdotL;
 
+    // Ambient light remains simple to ensure compatibility without AO
     vec3 ambient = ambientLight * diffuse;
 
     vec3 finalColor;
     switch (push.renderMode) {
         case 0:
-            finalColor = diffuse * diffuseLighting;
+            finalColor = diffuse + diffuseLighting;
             break;
         case 1:
             finalColor = normal;
@@ -103,7 +104,7 @@ void main() {
             finalColor = specular;
             break;
         default:
-            finalColor = ambient + diffuseLighting * (1.0 - max(max(specular.r, specular.g), specular.b)) + specular * lightColor;
+            finalColor = ambient + (diffuseLighting * (1.0 - max(max(specular.r, specular.g), specular.b)) + specular * lightColor);
             break;
     }
 
