@@ -35,7 +35,7 @@ void Scene3D<VertexType>::createScene(const VkDevice& device, const VkPhysicalDe
     meshPyramid.setVertices(pyramidVertices);
     meshPyramid.setIndices(pyramidIndices);
 
-    meshPyramid.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -14.5f, 0.5f, 0 }) * glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 2.0f });
+    meshPyramid.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -29.5f, 0.5f, 0 }) * glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 2.0f });
 
     addMesh(meshPyramid, device, physDevice, queueFamily, graphicsQueue);
 
@@ -56,7 +56,7 @@ void Scene3D<VertexType>::createScene(const VkDevice& device, const VkPhysicalDe
     meshSquare.setVertices(squareVertices);
     meshSquare.setIndices(squareIndices);
 
-    meshSquare.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -17.5f, 0.5f, 0 }) * glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 2.0f });
+    meshSquare.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -32.5f, 0.5f, 0 }) * glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 2.0f });
 
     addMesh(meshSquare, device, physDevice, queueFamily, graphicsQueue);
 
@@ -98,7 +98,7 @@ void Scene3D<VertexType>::createScene(const VkDevice& device, const VkPhysicalDe
     meshCube.setVertices(cubeVertices);
     meshCube.setIndices(cubeIndices);
 
-    meshCube.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -11.5f, 0.5f, 0 }) * glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 2.0f });
+    meshCube.m_ModelMatrix = glm::translate(glm::mat4(1.0f), { -26.5f, 0.5f, 0 }) * glm::scale(glm::mat4(1.0f), { 2.0f, 2.0f, 2.0f });
 
     addMesh(meshCube, device, physDevice, queueFamily, graphicsQueue);
 }
